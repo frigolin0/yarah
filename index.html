@@ -440,7 +440,7 @@ firebase.initializeApp({
   apiKey: "AIzaSyAQ80nA7F559DPPKiP72CM4LYgkz4judlQ",
   authDomain: "yarah-app.firebaseapp.com",
   projectId: "yarah-app",
-  storageBucket: "yarah-app.appspot.com",
+  storageBucket: "yarah-app.firebasestorage.app",
   messagingSenderId: "593808537395",
   appId: "1:593808537395:web:bec5eb9812dabd98a47046"
 });
@@ -538,19 +538,15 @@ function setProgress(pct, msg) {
 function uploadFileWithProgress(storageRef, file, msg) {
   return new Promise((resolve, reject) => {
     showSpinner(true, msg || 'Subiendo...');
-    const progressTimeout = setTimeout(() => {
-      showSpinner(false);
-      reject(new Error('La subida no arranca. Revisa la consola (F12) para ver el error exacto.'));
-    }, 15000);
     const task = storageRef.put(file);
     task.on('state_changed',
-      snap => {
-        clearTimeout(progressTimeout);
-        setProgress((snap.bytesTransferred / snap.totalBytes) * 100);
+      snap => setProgress((snap.bytesTransferred / snap.totalBytes) * 100),
+      err => {
+        showSpinner(false);
+        console.error('Upload error:', err);
+        reject(new Error('Error al subir: ' + (err.message || err.code || 'desconocido') + '. Abre F12 > Console para más detalles.'));
       },
-      err => { clearTimeout(progressTimeout); showSpinner(false); reject(err); },
       async () => {
-        clearTimeout(progressTimeout);
         try {
           const url = await task.snapshot.ref.getDownloadURL();
           showSpinner(false);
