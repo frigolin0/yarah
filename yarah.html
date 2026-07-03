@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yarah - Control Cachorra</title>
+<style>
+:root {
+  --bg: #f5f0eb;
+  --card: #ffffff;
+  --primary: #5b7a4a;
+  --primary-dark: #3d5a2e;
+  --accent: #c49a6c;
+  --text: #2c2c2c;
+  --text-light: #7a7a7a;
+  --border: #e0d6cc;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 16px;
+  --danger: #c0392b;
+  --success: #27ae60;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+header { background: var(--primary); color: #fff; padding: 16px 20px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+header h1 { font-size: 20px; font-weight: 600; flex: 1; }
+header .subtitle { font-size: 12px; opacity: 0.85; }
+nav { display: flex; background: var(--card); border-bottom: 1px solid var(--border); overflow-x: auto; position: sticky; top: 56px; z-index: 99; }
+nav button { flex: 1; min-width: 70px; padding: 12px 8px; border: none; background: transparent; font-size: 12px; color: var(--text-light); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
+nav button.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+nav button:hover { background: var(--bg); }
+main { max-width: 800px; margin: 0 auto; padding: 16px; }
+.section { display: none; }
+.section.active { display: block; }
+.card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card h2 { font-size: 18px; margin-bottom: 14px; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
+.card h3 { font-size: 14px; color: var(--text-light); margin-bottom: 8px; }
+label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 4px; font-weight: 500; }
+input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; background: var(--bg); margin-bottom: 12px; font-family: inherit; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+textarea { resize: vertical; min-height: 60px; }
+.btn { padding: 10px 20px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-accent:hover { opacity: 0.9; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { opacity: 0.9; }
+.btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; padding: 10px 8px; border-bottom: 2px solid var(--border); color: var(--text-light); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 10px 8px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf8f5; }
+.empty { text-align: center; padding: 40px 20px; color: var(--text-light); }
+.empty p { margin-bottom: 12px; }
+.chart-wrap { position: relative; width: 100%; margin: 12px 0; }
+.chart-wrap canvas { width: 100%; height: auto; display: block; }
+.analysis-box { background: #f8f5f0; border-left: 4px solid var(--accent); padding: 14px; border-radius: 8px; margin-top: 12px; font-size: 14px; }
+.analysis-box .verdict { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+.analysis-box .verdict.good { color: var(--success); }
+.analysis-box .verdict.warn { color: #c47a1a; }
+.analysis-box .verdict.bad { color: var(--danger); }
+.analysis-box .tip { margin-top: 6px; color: var(--text-light); font-size: 13px; }
+.tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; margin: 2px; }
+.tag-vaccine { background: #e8f0fe; color: #1a73e8; }
+.tag-reason { background: #fef3e2; color: #c47a1a; }
+
+.profile-area { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.photo-upload { position: relative; width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 3px dashed var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.photo-upload.has-photo { border-style: solid; }
+.photo-upload img { width: 100%; height: 100%; object-fit: cover; }
+.photo-upload .placeholder { text-align: center; color: var(--text-light); font-size: 11px; padding: 10px; }
+.photo-upload .placeholder svg { width: 32px; height: 32px; margin-bottom: 4px; opacity: 0.5; }
+.photo-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.profile-info { flex: 1; min-width: 180px; }
+.profile-info .name { font-size: 24px; font-weight: 700; color: var(--primary-dark); }
+.profile-info .detail { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+.profile-info .chip { font-size: 13px; margin-top: 8px; padding: 6px 12px; background: #e8f0fe; border-radius: 8px; display: inline-block; }
+.feeding-box { background: linear-gradient(135deg, #f8f5f0, #f0ebe4); border-radius: 12px; padding: 16px; margin-top: 16px; }
+.feeding-box .amount { font-size: 32px; font-weight: 700; color: var(--primary-dark); }
+.feeding-box .amount span { font-size: 16px; font-weight: 400; color: var(--text-light); }
+.feeding-box .per-meal { margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+.feeding-box .per-meal .meal { background: var(--card); padding: 8px 14px; border-radius: 8px; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.feeding-box .note { font-size: 12px; color: var(--text-light); margin-top: 8px; font-style: italic; }
+.age-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; background: var(--accent); color: #fff; border-radius: 20px; font-size: 13px; font-weight: 500; }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.gallery .item { border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 1; background: var(--bg); }
+.gallery .item img { width: 100%; height: 100%; object-fit: cover; }
+.gallery .item .date { position: absolute; bottom: 0; left: 0; right: 0; padding: 6px 8px; background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; text-align: center; }
+.gallery .item .del { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,0.5); color: #fff; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.doc-list .doc-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.doc-list .doc-item:last-child { border-bottom: none; }
+.doc-list .doc-name { flex: 1; font-size: 14px; }
+.doc-list .doc-date { font-size: 12px; color: var(--text-light); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--card); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { margin-bottom: 16px; }
+.form-row { display: flex; gap: 12px; }
+.form-row > * { flex: 1; }
+@media (max-width: 500px) {
+  .profile-area { flex-direction: column; align-items: center; text-align: center; }
+  .form-row { flex-direction: column; gap: 0; }
+  .feeding-box .per-meal { justify-content: center; }
+  nav button { font-size: 11px; padding: 10px 4px; }
+  #compareTable { font-size: 12px; }
+  #compareTable th, #compareTable td { padding: 8px 4px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div><h1>🐾 Yarah</h1><div class="subtitle">Pastor Alemán · 07/02/2026</div></div>
+  <span class="age-badge" id="ageBadge">--</span>
+</header>
+
+<nav>
+  <button class="active" data-section="dashboard">Inicio</button>
+  <button data-section="weight">Peso</button>
+  <button data-section="vet">Veterinario</button>
+  <button data-section="photos">Fotos</button>
+  <button data-section="docs">Documentos</button>
+  <button data-section="nutrition">Alimentación</button>
+</nav>
+
+<div id="flashBanner" style="display:none;background:linear-gradient(135deg,#e8f0fe,#d1e4ff);border-bottom:2px solid #1a73e8;padding:12px 20px;position:sticky;top:96px;z-index:98;font-size:14px">
+  <div style="max-width:800px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span style="font-size:24px">💡</span>
+    <div style="flex:1;min-width:200px" id="flashContent"></div>
+    <button class="btn btn-sm" style="background:#1a73e8;color:#fff;white-space:nowrap" onclick="document.querySelector('nav button[data-section=nutrition]').click()">📊 Alimentación</button>
+    <button class="btn btn-sm" style="background:#fff;color:#1a73e8;white-space:nowrap" onclick="dismissFlash()">✕ Cerrar</button>
+  </div>
+</div>
+<main>
+
+<!-- DASHBOARD -->
+<section id="section-dashboard" class="section active">
+  <div class="card">
+    <div class="profile-area">
+      <div class="photo-upload" id="profileUpload">
+        <img id="profilePreview" style="display:none" alt="Yarah">
+        <div class="placeholder" id="profilePlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 15a4 4 0 100-8 4 4 0 000 8z"/><path d="M20 21a8 8 0 10-16 0"/></svg>
+          <div>Arrastra o haz clic</div>
+        </div>
+        <input type="file" accept="image/*" id="profileInput">
+      </div>
+      <div class="profile-info">
+        <div class="name">Yarah</div>
+        <div class="detail">Pastor Alemán · Hembra</div>
+        <div class="detail">Nacimiento: <strong>07/02/2026</strong></div>
+        <div class="chip" id="chipDisplay">🔲 Chip: <input type="text" id="chipInput" placeholder="Número del microchip" style="width:auto;display:inline;margin:0;padding:4px 8px;font-size:13px;border:1px dashed var(--border);background:transparent;min-width:140px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🍽 Ración diaria</h2>
+    <div class="feeding-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="amount" id="dailyAmount">-- <span>g/día</span></div>
+          <div style="font-size:13px;color:var(--text-light);margin-top:2px">Peso adulto estimado: 
+            <select id="adultWeight" style="width:auto;display:inline;margin:0;padding:2px 6px;font-size:13px">
+              <option value="15">15 kg</option>
+              <option value="20">20 kg</option>
+              <option value="25">25 kg</option>
+              <option value="30" selected>30 kg</option>
+              <option value="35">35 kg</option>
+              <option value="40">40 kg</option>
+              <option value="45">45 kg</option>
+              <option value="50">50 kg</option>
+            </select>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--text-light)">Rango recomendado</div>
+          <div style="font-weight:600" id="dailyRange">--</div>
+        </div>
+      </div>
+      <div class="per-meal" id="mealSplit">
+        <div class="meal">🌅 Mañana: <strong id="meal1">--</strong></div>
+        <div class="meal">☀️ Mediodía: <strong id="meal2">--</strong></div>
+        <div class="meal">🌙 Noche: <strong id="meal3">--</strong></div>
+      </div>
+      <div class="note">* Basado en la tabla del fabricante Essential The Beginning Large Breed. Los valores son orientativos; ajusta según condición corporal.</div>
+    </div>
+  </div>
+
+  <div class="card" id="dashboardAnalysis">
+    <h2>📊 Recomendaciones y consejos</h2>
+    <div id="dashAnalysisContent">
+      <div class="empty" style="padding:20px"><p>Registra al menos 2 pesadas para ver el análisis de crecimiento y recomendaciones.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- WEIGHT -->
+<section id="section-weight" class="section">
+  <div class="card">
+    <h2>⚖️ Registrar peso</h2>
+    <div class="form-row">
+      <div><label>Fecha (dd/mm/aa)</label><input type="text" id="weightDate" placeholder="ej. 03/07/26"></div>
+      <div><label>Peso (kg)</label><input type="number" id="weightKg" step="0.01" placeholder="ej. 8.5"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addWeight()">Guardar peso</button>
+  </div>
+  <div class="card">
+    <h2>📋 Historial de peso</h2>
+    <div class="table-wrap">
+      <table><thead><tr><th>Fecha</th><th>Peso (kg)</th><th></th></tr></thead><tbody id="weightTableBody"></tbody></table>
+    </div>
+    <div class="empty" id="weightEmpty"><p>Aún no has registrado ningún peso.</p></div>
+  </div>
+  <div class="card" id="chartCard" style="display:none">
+    <h2>📈 Evolución del peso</h2>
+    <div class="chart-wrap"><canvas id="weightChart" height="280"></canvas></div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-light);margin-top:8px">
+      <span><span style="display:inline-block;width:14px;height:14px;background:var(--primary);border-radius:3px;vertical-align:middle;margin-right:4px"></span> Yarah</span>
+      <span><span style="display:inline-block;width:14px;height:14px;background:#c49a6c;border-radius:3px;vertical-align:middle;margin-right:4px"></span> Referencia Pastor Alemán hembra</span>
+    </div>
+  </div>
+  <div class="card" id="analysisCard" style="display:none">
+    <h2>🔍 Análisis de crecimiento</h2>
+    <div id="analysisContent"></div>
+  </div>
+</section>
+
+<!-- VET -->
+<section id="section-vet" class="section">
+  <div class="card">
+    <h2>💉 Nueva visita al veterinario</h2>
+    <div class="form-row">
+      <div><label>Fecha (dd/mm/aa)</label><input type="text" id="vetDate" placeholder="ej. 03/07/26"></div>
+      <div><label>Motivo</label>
+        <select id="vetReason">
+          <option value="">Selecciona o escribe otro</option>
+          <option value="Revisión general">Revisión general</option>
+          <option value="Vacunación">Vacunación</option>
+          <option value="Desparasitación">Desparasitación</option>
+          <option value="Revisión de crecimiento">Revisión de crecimiento</option>
+          <option value="Control de peso">Control de peso</option>
+          <option value="Enfermedad / Síntomas">Enfermedad / Síntomas</option>
+          <option value="Urgencia">Urgencia</option>
+          <option value="otro">Otro (especificar)</option>
+        </select>
+      </div>
+    </div>
+    <div id="customReasonWrap" style="display:none"><label>Especifica el motivo</label><input type="text" id="vetReasonCustom" placeholder="Describe el motivo..."></div>
+    <div><label>Vacunas aplicadas (opcional)</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px" id="vaccineCheckboxes">
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Rabia"> Rabia</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Pentavalente"> Pentavalente</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Leishmania"> Leishmania</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Polivalente"> Polivalente</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Parvovirus"> Parvovirus</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Tos de las perreras"> Tos de las perreras</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Moquillo"> Moquillo</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Hepatitis"> Hepatitis</label>
+        <label style="font-weight:400;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="Leptospirosis"> Leptospirosis</label>
+      </div>
+    </div>
+    <div><label>Notas / Observaciones</label><textarea id="vetNotes" placeholder="Detalles adicionales..."></textarea></div>
+    <button class="btn btn-primary" onclick="addVetVisit()">Guardar visita</button>
+  </div>
+  <div class="card">
+    <h2>📋 Historial de visitas</h2>
+    <div id="vetList"></div>
+    <div class="empty" id="vetEmpty"><p>No hay visitas registradas.</p></div>
+  </div>
+</section>
+
+<!-- PHOTOS -->
+<section id="section-photos" class="section">
+  <div class="card">
+    <h2>📸 Subir foto</h2>
+    <div style="border:2px dashed var(--border);border-radius:12px;padding:30px;text-align:center;cursor:pointer;position:relative;background:var(--bg)" id="photoDropZone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;opacity:0.4;margin-bottom:8px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="M3 16l5-5 3 3 4-4 6 6"/></svg>
+      <div style="color:var(--text-light)">Arrastra una foto aquí o haz clic para seleccionar</div>
+      <input type="file" accept="image/*" id="galleryInput" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+    </div>
+    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+      <label style="flex:1;margin:0"><input type="text" id="photoDate" placeholder="Fecha (dd/mm/aa) - opcional, por defecto hoy" style="margin:0"></label>
+      <button class="btn btn-accent" onclick="addGalleryPhoto()" id="btnAddPhoto">Subir foto</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>📷 Evolución de Yarah</h2>
+    <div class="gallery" id="galleryGrid"></div>
+    <div class="empty" id="galleryEmpty"><p>No hay fotos todavía. ¡Sube la primera!</p></div>
+  </div>
+</section>
+
+<!-- DOCUMENTS -->
+<section id="section-docs" class="section">
+  <div class="card">
+    <h2>📄 Subir documento</h2>
+    <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;position:relative;background:var(--bg)" id="docDropZone">
+      <div style="color:var(--text-light)">Arrastra un documento aquí o haz clic para seleccionar<br><small style="opacity:0.7">PDF, JPG, PNG</small></div>
+      <input type="file" accept=".pdf,image/*" id="docInput" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+    </div>
+    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+      <label style="flex:1;margin:0"><input type="text" id="docName" placeholder="Nombre del documento (ej. Censo)" style="margin:0"></label>
+      <button class="btn btn-accent" onclick="addDocument()">Subir</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>📁 Documentos</h2>
+    <div class="doc-list" id="docList"></div>
+    <div class="empty" id="docEmpty"><p>No hay documentos subidos.</p></div>
+  </div>
+</section>
+
+<!-- ALIMENTACION -->
+<section id="section-nutrition" class="section">
+  <div class="card">
+    <h2>📊 Comparativa nutricional completa</h2>
+    <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">Análisis exhaustivo de todos los piensos candidatos para Yarah. Todos son <strong>sin cereales</strong> y aptos para cachorros de razas grandes.</p>
+    <div class="table-wrap">
+      <table id="compareTable">
+        <thead><tr>
+          <th>Parámetro</th>
+          <th>Essential UK<br><small>Actual</small></th>
+          <th>Essential HL</th>
+          <th>Acana Large</th>
+          <th>Orijen Large</th>
+          <th>Criadores GF</th>
+          <th>Traveness GF</th>
+          <th>Eukanuba GF</th>
+        </tr></thead>
+        <tbody>
+          <tr style="background:#f0f5eb"><td colspan="8"><strong>💰 Precio</strong></td></tr>
+          <tr><td>Precio saco</td><td>95€</td><td>79€</td><td>~77€</td><td>~75€</td><td>~60€</td><td>~62€</td><td>~40-55€</td></tr>
+          <tr><td>Peso saco</td><td>10 kg</td><td>10 kg</td><td>11,4 kg</td><td>11,4 kg</td><td>12 kg</td><td>12 kg</td><td>12 kg</td></tr>
+          <tr><td><strong>€/kg</strong></td><td><strong style="color:var(--danger)">9,50€</strong></td><td><strong style="color:var(--success)">7,90€</strong></td><td><strong style="color:var(--success)">6,75€</strong></td><td><strong style="color:var(--success)">6,58€</strong></td><td><strong style="color:var(--success)">5,00€</strong></td><td><strong style="color:var(--success)">5,17€</strong></td><td><strong style="color:var(--success)">3,33-4,58€</strong></td></tr>
+          <tr><td>Ahorro vs UK</td><td>—</td><td>-17%</td><td>-29%</td><td>-31%</td><td>-47%</td><td>-46%</td><td>-55%</td></tr>
+
+          <tr style="background:#f0f5eb"><td colspan="8"><strong>🥩 Composición cárnica</strong></td></tr>
+          <tr><td>% Ingredientes animales</td><td>79%</td><td>~74%</td><td>70%</td><td>85%</td><td>58%</td><td>65%</td><td>~30%</td></tr>
+          <tr><td>% Carne fresca</td><td>48%</td><td>~45%</td><td>40%</td><td>&gt;50%</td><td>30%</td><td>65%</td><td>0%</td></tr>
+          <tr><td>Variedad proteica</td><td>Pollo, pato, salmón, trucha, huevo</td><td>Pollo, pato, salmón, trucha</td><td>Pollo, pollo desh., huevo, hake, arenque</td><td>Pollo, pavo, huevo, hake, arenque, sardina, caballa</td><td>Pavo fresco, pollo desh.</td><td>Pollo fresco</td><td>Harina de pescado</td></tr>
+          <tr><td>Nº fuentes proteína</td><td>5</td><td>4</td><td>5</td><td>7+</td><td>2</td><td>1</td><td>1</td></tr>
+
+          <tr style="background:#f0f5eb"><td colspan="8"><strong>🧪 Perfil analítico</strong></td></tr>
+          <tr><td>Proteína bruta</td><td>28%</td><td>28%</td><td>33%</td><td>38%</td><td>27,5%</td><td>~28%</td><td>26%</td></tr>
+          <tr><td>Grasa bruta</td><td>14%</td><td>16%</td><td>15%</td><td>16%</td><td>16,2%</td><td>~15%</td><td>15%</td></tr>
+          <tr><td>Fibra bruta</td><td>3,5%</td><td>—</td><td>6%</td><td>6%</td><td>3,3%</td><td>—</td><td>2,4%</td></tr>
+          <tr><td>Ceniza</td><td>8%</td><td>—</td><td>7%</td><td>8%</td><td>7%</td><td>—</td><td>6,6%</td></tr>
+          <tr><td>Calcio</td><td>1,4%</td><td>1,4%</td><td>1,4%</td><td>1,3%</td><td>1,4%</td><td>—</td><td>1,1%</td></tr>
+          <tr><td>Fósforo</td><td>1,3%</td><td>1,2%</td><td>1,0%</td><td>1,1%</td><td>1,1%</td><td>—</td><td>0,9%</td></tr>
+          <tr><td>Ca:P</td><td>1,08</td><td>1,17</td><td>1,40</td><td>1,18</td><td>1,27</td><td>—</td><td>1,22</td></tr>
+
+          <tr style="background:#f0f5eb"><td colspan="8"><strong>🐟 Ácidos grasos</strong></td></tr>
+          <tr><td>Omega-3</td><td>1,6%</td><td>—</td><td>1,2%</td><td>0,9%</td><td>—</td><td>—</td><td>0,6%</td></tr>
+          <tr><td>Omega-6</td><td>2,5%</td><td>—</td><td>2,4%</td><td>2,8%</td><td>—</td><td>—</td><td>3,2%</td></tr>
+          <tr><td>DHA</td><td>—</td><td>—</td><td>0,4%</td><td>0,3%</td><td>✔ (aceite pescado)</td><td>—</td><td>0,35%</td></tr>
+
+          <tr style="background:#f0f5eb"><td colspan="8"><strong>⚡ Energía y tamaño</strong></td></tr>
+          <tr><td>kcal/kg</td><td>3620</td><td>—</td><td>3375</td><td>3760</td><td>~3900</td><td>—</td><td>—</td></tr>
+          <tr><td>Diámetro croqueta</td><td>Grande (razas grandes)</td><td>Grande</td><td>Grande (15mm)</td><td>Grande</td><td>Pequeña (9mm)</td><td>Pequeña (7mm)</td><td>Grande (DentaDefense)</td></tr>
+          <tr><td>Formato grande</td><td>10 kg</td><td>10 kg</td><td>11,4 kg</td><td>11,4 kg</td><td>12 kg</td><td>12 kg</td><td>12 kg</td></tr>
+
+          <tr style="background:#f0f5eb"><td colspan="8"><strong>➕ Suplementos destacados</strong></td></tr>
+          <tr><td>Glucosamina</td><td>900 mg/kg</td><td>✔</td><td>✔ (cartílago natural)</td><td>1400 mg/kg</td><td>1000 mg/kg</td><td>—</td><td>—</td></tr>
+          <tr><td>Condroitina</td><td>700 mg/kg</td><td>✔</td><td>✔</td><td>1200 mg/kg</td><td>270 mg/kg</td><td>—</td><td>—</td></tr>
+          <tr><td>Probióticos</td><td>MOS, FOS</td><td>MOS, FOS</td><td>✔ (E. faecium)</td><td>—</td><td>MOS, FOS</td><td>—</td><td>FOS, MOS</td></tr>
+          <tr><td>Superalimentos</td><td>Arándanos, açai, espinacas, ginseng, té verde</td><td>Similar</td><td>Calabaza, kale, arándanos, cúrcuma</td><td>Calabaza, kale, arándanos, cúrcuma, cardo</td><td>Espirulina, arándanos, jalea real</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tip" style="margin-top:12px">⚡ Datos recopilados de fichas técnicas oficiales. "—" = no especificado por el fabricante.</div>
+  </div>
+
+  <div class="card">
+    <h2>🔬 Análisis por marca</h2>
+
+    <div class="analysis-box" style="border-left-color:#3d5a2e">
+      <div class="verdict good">🥇 Essential HL (Heartland) — La mejor opción para Yarah</div>
+      <div style="margin-top:6px">
+        <p><strong>Composición:</strong> Pollo y pato deshidratados, pollo y pato frescos, batatas, grasa de pollo, guisantes, salmón y trucha frescos, huevos enteros, linaza, aceite de salmón. Sin cereales. Principio BOF (estabilización de azúcar en sangre). Cocción a baja temperatura (82°C) que preserva nutrientes.</p>
+        <p style="margin-top:4px"><strong>Puntos fuertes:</strong> Misma fórmula que el UK actual de Yarah. 4 fuentes proteicas distintas (pollo, pato, salmón, trucha + huevo). Perfecto para razas grandes. Croqueta grande. Glucosamina y condroitina para articulaciones.</p>
+        <p style="margin-top:4px"><strong>Punto débil:</strong> El contenido graso sube al 16% (vs 14% UK) porque la carne europea tiene más grasa intrínseca — beneficioso para un cachorro en crecimiento.</p>
+      </div>
+      <div class="tip">✅ <strong>Recomendado:</strong> Cambio directo. Misma calidad, ahorras 16€/saco, sin transición.</div>
+    </div>
+
+    <div class="analysis-box" style="border-left-color:var(--success);margin-top:12px">
+      <div class="verdict good">🥈 Acana Puppy Large Breed — Excelente alternativa premium</div>
+      <div style="margin-top:6px">
+        <p><strong>Composición:</strong> Pollo fresco (22%), pollo deshidratado (21%), lentejas, guisantes, menudillos de pollo (6,5%), huevos frescos (4%), hake crudo (4%), aceite de pescado (4%), harina de arenque (4%). 70% animal (40% fresco). Sin cereales. Fabricado por Champion Petfoods (Canadá).</p>
+        <p style="margin-top:4px"><strong>Puntos fuertes:</strong> 33% proteína (óptimo para crecimiento). Croqueta grande (15mm). DHA 0,4% para desarrollo cerebral y visión. Relación Ca:P ideal de 1,40. Probiótico E. faecium incluido. Precio competitivo (6,75€/kg).</p>
+        <p style="margin-top:4px"><strong>Punto débil:</strong> Fibra alta (6%) que puede dar heces más voluminosas. Menos fuentes proteicas que Orijen.</p>
+      </div>
+      <div class="tip">✅ <strong>Recomendado:</strong> Mejor alternativa si quieres cambiar de marca. Excelente relación calidad-precio.</div>
+    </div>
+
+    <div class="analysis-box" style="border-left-color:#2d7d9a;margin-top:12px">
+      <div class="verdict good">🥉 Orijen Puppy Large — Máxima calidad del mercado</div>
+      <div style="margin-top:6px">
+        <p><strong>Composición:</strong> Pollo fresco (21%), pavo crudo (11%), menudillos de pollo (10%), hake crudo (5%), arenque crudo (5%), huevos frescos (5%), hígado de pavo crudo (5%), pollo deshidratado (5%), caballa deshidratada (5%), sardina deshidratada (4,5%), arenque deshidratado (4%)... <strong>85% ingredientes animales, más de la mitad frescos.</strong> WholePrey (carne, órganos y cartílago). Sin cereales.</p>
+        <p style="margin-top:4px"><strong>Puntos fuertes:</strong> 38% proteína — la más alta. 7+ fuentes proteicas. 1400 mg/kg glucosamina, 1200 mg/kg condroitina. DHA 0,3%. La composición más natural y variada de todas.</p>
+        <p style="margin-top:4px"><strong>Punto débil:</strong> Proteína muy alta (38%). En razas grandes, un crecimiento demasiado rápido puede estresar articulaciones. Requiere supervisión veterinaria. Relativamente caro (6,58€/kg).</p>
+      </div>
+      <div class="tip">⚠️ <strong>Recomendado con cautela:</strong> Calidad inmejorable. Consulta al veterinario si es adecuado para Yarah por la proteína alta.</div>
+    </div>
+
+    <div class="analysis-box" style="border-left-color:var(--success);margin-top:12px">
+      <div class="verdict good">🏅 Criadores Grain Free Pavo Cachorros — Buena opción española</div>
+      <div style="margin-top:6px">
+        <p><strong>Composición:</strong> Pavo fresco (30%), pollo deshidratado (20,5%), patata deshidratada, guisantes, grasa de pollo (4,5%), proteína de guisantes, pulpa de remolacha, hidrolizado de hígado de ave (2,5%), huevo deshidratado (0,4%), aceite de pescado (0,25%), aceite de oliva (0,25%). 58% ingredientes cárnicos. Sin cereales. Fabricado en España.</p>
+        <p style="margin-top:4px"><strong>Puntos fuertes:</strong> Precio muy competitivo (5€/kg). Superalimentos: espirulina, arándanos, jalea real. Glucosamina 1000 mg/kg. Aceite de oliva y pescado para omega-3. Hecho en España (menor huella de carbono).</p>
+        <p style="margin-top:4px"><strong>Punto débil:</strong> Solo 58% carne vs 79% del Essential. Croqueta pequeña (9mm), no diseñada para razas grandes — Yarah podría tragarlas sin masticar. Menor variedad proteica (solo pavo y pollo).</p>
+      </div>
+      <div class="tip">ℹ️ Opción viable pero con concesiones. La croqueta pequeña es la principal desventaja para una pastor alemán.</div>
+    </div>
+
+    <div class="analysis-box" style="border-left-color:#c47a1a;margin-top:12px">
+      <div class="verdict warn">Traveness Grain Free Puppy — Alternativa española sencilla</div>
+      <div style="margin-top:6px">
+        <p><strong>Composición:</strong> 65% pollo fresco como ingrediente principal, sin cereales. Fabricado en España por United Petfood. Perfil nutricional básico sin gran detalle público.</p>
+        <p style="margin-top:4px"><strong>Puntos fuertes:</strong> Alto porcentaje de pollo fresco (65%). Precio ajustado (5,17€/kg). Hecho en España. Bueno como opción de transición o combinación.</p>
+        <p style="margin-top:4px"><strong>Punto débil:</strong> Información nutricional muy limitada. Sin detalles de glucosamina, condroitina, omega-3/6. Fuente proteica única (solo pollo). Croqueta pequeña. Marca menos contrastada en el mercado.</p>
+      </div>
+      <div class="tip">ℹ️ Correcto para uso ocasional o como complemento. No recomendado como alimentación principal exclusiva para un cachorro en desarrollo.</div>
+    </div>
+
+    <div class="analysis-box" style="border-left-color:var(--danger);margin-top:12px">
+      <div class="verdict bad">Eukanuba Grain Free Puppy Large — Calidad insuficiente para Yarah</div>
+      <div style="margin-top:6px">
+        <p><strong>Composición:</strong> Harina de pescado (30%), batata deshidratada (18%), guisantes enteros, patata deshidratada, grasa de cerdo, pulpa de remolacha (4%), aceite de girasol, salsa de pescado. Sin cereales. Fuente proteica única y de baja calidad (harina vs carne fresca).</p>
+        <p style="margin-top:4px"><strong>Puntos fuertes:</strong> Precio muy bajo (3,33-4,58€/kg). DHA 0,35% para desarrollo cerebral. Croqueta DentaDefense grande. Marca contrastada con respaldo veterinario.</p>
+        <p style="margin-top:4px"><strong>Punto débil:</strong> Solo 30% de harina de pescado — sin carne fresca. Proteína baja (26%). Perfil nutricional pobre para un cachorro de raza grande en pleno desarrollo. Sin glucosamina ni condroitina. Grasa de cerdo como fuente lipídica principal (menos saludable que grasa de ave o aceite de pescado).</p>
+      </div>
+      <div class="tip">❌ <strong>No recomendado</strong> como pienso principal para Yarah. No cubre las necesidades de un pastor alemán cachorro. Reservar solo para situaciones puntuales.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Comparativa de composición (ingredientes)</h2>
+    <p style="font-size:14px;color:var(--text-light);margin-bottom:12px">Los ingredientes se listan en orden descendente según la etiqueta de cada producto. Los primeros son los más abundantes.</p>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#f8f5f0;padding:12px;border-radius:8px">
+        <strong>🥇 Essential UK / HL</strong><br>
+        <span style="font-size:13px;color:var(--text-light)">Pollo/pato fresco → pollo/pato deshidratado → batata → grasa de pollo → guisantes → salmón/trucha frescos → huevos enteros → linaza → patata → salmón → alfalfa → vitaminas/minerales → MOS/FOS → glucosamina → condroitina → arándanos → açai → ginseng → té verde</span>
+      </div>
+      <div style="background:#f8f5f0;padding:12px;border-radius:8px">
+        <strong>🥈 Acana Puppy Large Breed</strong><br>
+        <span style="font-size:13px;color:var(--text-light)">Pollo fresco → pollo deshidratado → lentejas rojas → guisantes → menudillos pollo fresco → huevos frescos → hake crudo → aceite pescado → arenque deshidratado → garbanzos → fécula guisante → pavo deshidratado → lentejas verdes → guisantes amarillos → grasa pollo → fibra lenteja → hígado pavo crudo → verduras/frutas frescas → probióticos</span>
+      </div>
+      <div style="background:#f8f5f0;padding:12px;border-radius:8px">
+        <strong>🥉 Orijen Puppy Large</strong><br>
+        <span style="font-size:13px;color:var(--text-light)">Pollo fresco → pavo crudo → menudillos pollo fresco → hake crudo → arenque crudo → huevos frescos → hígado pavo crudo → pollo deshidratado → caballa deshidratada → sardina deshidratada → arenque deshidratado → lentejas → guisantes → garbanzos → pavo deshidratado → grasa pollo → verduras/frutas → superalimentos</span>
+      </div>
+      <div style="background:#f8f5f0;padding:12px;border-radius:8px">
+        <strong>🏅 Criadores Grain Free Pavo</strong><br>
+        <span style="font-size:13px;color:var(--text-light)">Pavo fresco (30%) → pollo deshidratado (20,5%) → patata deshidratada → guisantes → grasa pollo → proteína guisante → pulpa remolacha → hidrolizado hígado ave → garrofín → pulpa manzana → huevo deshidratado → aceite pescado → aceite oliva → calabaza → zanahoria → arándanos → espirulina → FOS/MOS → glucosamina → condroitina</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>✅ Veredicto final</h2>
+    <div class="analysis-box" style="border-left-color:var(--primary);background:linear-gradient(135deg,#f0f5eb,#e8f0e0)">
+      <div style="font-size:16px;font-weight:600;color:var(--primary-dark)">🏆 Essential HL (Heartland) — La mejor opción para Yarah</div>
+      <div style="margin-top:8px">
+        <p><strong>Motivo:</strong> Es el <strong>mismo pienso</strong> que el Essential UK que ya está comiendo Yarah. Misma fórmula, mismos estándares, mismos beneficios (BOF, 28% proteína, sin cereales, glucosamina, condroitina). La única diferencia es que los ingredientes se originan en Europa en lugar de Reino Unido. El precio baja de 9,50€/kg a 7,90€/kg. <strong>Ahorro: 16€ por saco.</strong></p>
+        <p style="margin-top:6px"><strong>Transición:</strong> Cero riesgo. No necesita periodo de adaptación porque es el mismo producto.</p>
+        <p style="margin-top:6px">Si en el futuro quieres explorar otras marcas, <strong>Acana Puppy Large Breed</strong> (6,75€/kg) y <strong>Orijen Puppy Large</strong> (6,58€/kg) son alternativas premium de gran calidad, con más proteína y mayor variedad de carnes frescas. <strong>Criadores Grain Free Pavo</strong> (5,00€/kg) es la mejor opción económica española, aunque su croqueta pequeña y menor porcentaje cárnico la hacen menos ideal para Yarah.</p>
+      </div>
+      <div class="tip" style="margin-top:8px">💡 <strong>Mi recomendación:</strong> Cambia a Essential HL ahora (ahorro inmediato sin riesgos). Si quieres variar, prueba Acana en el siguiente saco — calidad premium a buen precio.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ===== DATA =====
+const FEEDING_TABLE = {
+  15: [180,190,200,210,220,230,230,220,210,200,190,null,null,null,null,null,null,null],
+  20: [210,230,240,250,260,270,280,280,270,260,250,240,null,null,null,null,null,null],
+  25: [240,270,280,290,300,310,320,330,330,320,310,300,290,null,null,null,null,null],
+  30: [280,300,310,320,330,340,350,360,370,370,360,350,340,330,null,null,null,null],
+  40: [360,370,380,390,400,410,420,430,440,450,450,440,430,420,410,null,null,null],
+  50: [440,450,460,470,480,490,500,510,520,530,540,540,530,520,510,500,490,null],
+  60: [510,520,530,540,550,560,570,580,590,600,610,610,600,590,580,570,560,null],
+  70: [580,590,600,610,620,630,640,650,660,670,680,680,670,660,650,640,630,null],
+  80: [650,660,670,680,690,700,710,720,730,740,750,750,740,730,720,710,700,null],
+};
+const MONTH_LABELS = ['2m','3m','4m','5m','6m','7m','8m','9m','10m','11m','12m','13m','14m','15m','16m','17m','18m','18m+'];
+
+let data;
+
+function defaultData() {
+  return {
+    chip: '',
+    adultWeight: 30,
+    weights: [],
+    vetVisits: [],
+    photos: [],
+    documents: [],
+    profilePhoto: null,
+    dismissedAlerts: [],
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('yarah_data');
+    if (raw) { data = JSON.parse(raw); return; }
+  } catch(e) {}
+  data = defaultData();
+  save();
+}
+
+function save() {
+  try { localStorage.setItem('yarah_data', JSON.stringify(data)); } catch(e) {}
+}
+
+// ===== AGE CALC =====
+function getAge() {
+  const birth = new Date(2026, 1, 7);
+  const now = new Date();
+  let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+  let days = now.getDate() - birth.getDate();
+  if (days < 0) {
+    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    days += prevMonth.getDate();
+    months--;
+  }
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  let label = '';
+  if (years > 0) label += years + ' año' + (years>1?'s ':' ');
+  if (remMonths > 0) label += remMonths + ' mes' + (remMonths>1?'es ':' ');
+  label += days + ' día' + (days!==1?'s':'');
+  return { months, totalMonths: months + days/30, label };
+}
+
+function getFeedingIndex(totalMonths) {
+  if (totalMonths < 2) return 0;
+  const idx = Math.floor(totalMonths) - 2;
+  return Math.max(0, Math.min(idx, FEEDING_TABLE[30].length - 1));
+}
+
+function getFeedingRow(adultWt) {
+  const direct = FEEDING_TABLE[adultWt];
+  if (direct) return direct;
+  const weights = Object.keys(FEEDING_TABLE).map(Number).sort((a,b)=>a-b);
+  for (let i = 0; i < weights.length - 1; i++) {
+    if (adultWt > weights[i] && adultWt < weights[i+1]) {
+      const t = (adultWt - weights[i]) / (weights[i+1] - weights[i]);
+      const lo = FEEDING_TABLE[weights[i]];
+      const hi = FEEDING_TABLE[weights[i+1]];
+      return lo.map((v, idx) => {
+        if (v === null && hi[idx] === null) return null;
+        if (v === null) return Math.round(hi[idx]);
+        if (hi[idx] === null) return Math.round(v);
+        return Math.round(v + (hi[idx] - v) * t);
+      });
+    }
+  }
+  return null;
+}
+
+function getFeedingRange(adultWt, idx) {
+  const row = getFeedingRow(adultWt);
+  if (!row || idx >= row.length || row[idx] === null) return null;
+  const weights = Object.keys(FEEDING_TABLE).map(Number).sort((a,b)=>a-b);
+  let vals = [];
+  for (const w of weights) {
+    const r = FEEDING_TABLE[w];
+    if (idx < r.length && r[idx] !== null) vals.push(r[idx]);
+  }
+  if (vals.length === 0) return null;
+  return { min: Math.min(...vals), max: Math.max(...vals), main: row[idx] };
+}
+
+// ===== RENDER DASHBOARD =====
+function renderDashboard() {
+  const age = getAge();
+  document.getElementById('ageBadge').textContent = age.label;
+
+  const idx = getFeedingIndex(age.totalMonths);
+  const aw = parseInt(data.adultWeight) || 30;
+  const range = getFeedingRange(aw, idx);
+  const dailyEl = document.getElementById('dailyAmount');
+  const rangeEl = document.getElementById('dailyRange');
+  const m1 = document.getElementById('meal1');
+  const m2 = document.getElementById('meal2');
+  const m3 = document.getElementById('meal3');
+
+  if (range) {
+    dailyEl.innerHTML = `${range.main} <span>g/día</span>`;
+    rangeEl.textContent = `${range.min} - ${range.max} g`;
+    const perMeal = (range.main / 3).toFixed(0);
+    m1.textContent = perMeal + ' g';
+    m2.textContent = perMeal + ' g';
+    m3.textContent = perMeal + ' g';
+  } else {
+    dailyEl.innerHTML = `-- <span>g/día</span>`;
+    rangeEl.textContent = '--';
+    m1.textContent = '--';
+    m2.textContent = '--';
+    m3.textContent = '--';
+  }
+
+  document.getElementById('adultWeight').value = aw;
+
+  // Chip
+  document.getElementById('chipInput').value = data.chip || '';
+
+  // Profile photo
+  renderProfilePhoto();
+
+  // Dashboard analysis
+  renderDashAnalysis();
+}
+
+function renderProfilePhoto() {
+  const img = document.getElementById('profilePreview');
+  const pl = document.getElementById('profilePlaceholder');
+  const up = document.getElementById('profileUpload');
+  if (data.profilePhoto) {
+    img.src = data.profilePhoto;
+    img.style.display = 'block';
+    pl.style.display = 'none';
+    up.classList.add('has-photo');
+  } else {
+    img.style.display = 'none';
+    pl.style.display = 'block';
+    up.classList.remove('has-photo');
+  }
+}
+
+function renderDashAnalysis() {
+  const el = document.getElementById('dashAnalysisContent');
+  if (!el) return;
+  if (data.weights.length < 2) {
+    el.innerHTML = `<div class="empty" style="padding:20px"><p>Registra al menos 2 pesadas para ver el análisis de crecimiento y recomendaciones.</p></div>`;
+    return;
+  }
+  const wts = data.weights;
+  const birth = new Date(2026, 1, 7);
+  const ages = wts.map(w => {
+    const ms = parseDateNum(w.date) - birth.getTime();
+    return ms / (1000 * 60 * 60 * 24 * 30.44);
+  });
+  const last = wts[wts.length-1];
+  const prev = wts[wts.length-2];
+  const lastAge = ages[ages.length-1];
+  const prevAge = ages[ages.length-2];
+  const daysBetween = (lastAge - prevAge) * 30.44;
+  const gainG = (last.kg - prev.kg) * 1000;
+  const rateGPerDay = daysBetween > 0 ? gainG / daysBetween : 0;
+  const ref = getRefWeight(lastAge);
+  const pctOfRef = ref.min > 0 ? ((last.kg - ref.min) / (ref.max - ref.min)) * 100 : 50;
+
+  let expectedRate;
+  if (lastAge < 3) expectedRate = { min: 21, max: 28, label: '2-3 meses' };
+  else if (lastAge < 4) expectedRate = { min: 18, max: 26, label: '3-4 meses' };
+  else if (lastAge < 5) expectedRate = { min: 14, max: 21, label: '4-5 meses' };
+  else if (lastAge < 6) expectedRate = { min: 11, max: 17, label: '5-6 meses' };
+  else if (lastAge < 12) expectedRate = { min: 7, max: 14, label: '6-12 meses' };
+  else expectedRate = { min: 5, max: 10, label: '+12 meses' };
+
+  const rateOk = rateGPerDay >= expectedRate.min && rateGPerDay <= expectedRate.max;
+  const rateHigh = rateGPerDay > expectedRate.max;
+  const rateLow = rateGPerDay > 0 && rateGPerDay < expectedRate.min;
+
+  let verdict, verdictClass, advice, feedingAdvice;
+  if (last.kg < ref.min) {
+    if (rateHigh) {
+      verdict = '📈 Por debajo pero recuperándose';
+      verdictClass = 'good';
+      advice = 'Está por debajo del rango ideal pero su ritmo de ganancia es muy superior al esperado. Está en plena fase de recuperación. Si mantiene este ritmo alcanzará el rango ideal en poco tiempo.';
+      feedingAdvice = 'Mantén la ración actual. Su cuerpo está compensando. Sigue pesándola cada semana para confirmar la tendencia.';
+    } else if (rateOk) {
+      verdict = '👀 Ligeramente por debajo, ritmo correcto';
+      verdictClass = 'warn';
+      advice = 'Está un poco por debajo del rango ideal pero ganando peso a un ritmo adecuado. Es cuestión de tiempo que alcance su carril de crecimiento.';
+      feedingAdvice = 'Mantén la ración actual. Si en 2-3 semanas sigue igual, considera aumentar 10%.';
+    } else {
+      verdict = '⚠️ Por debajo y ganando poco peso';
+      verdictClass = 'warn';
+      advice = 'Está por debajo del rango ideal y la ganancia de peso es baja. Consulta con el veterinario para descartar problemas de salud o parásitos.';
+      feedingAdvice = 'Aumenta la ración un 10-15% o pasa a 4 comidas al día. Revisa heces y apetito. Visita al veterinario.';
+    }
+  } else if (last.kg > ref.max) {
+    if (rateLow) {
+      verdict = '📉 Por encima pero estabilizándose';
+      verdictClass = 'warn';
+      advice = 'Está por encima del rango ideal pero su ritmo de ganancia es bajo. Podría estar frenando naturalmente el crecimiento. Vigila la evolución.';
+      feedingAdvice = 'No aumentes la ración. Mantén el ejercicio moderado. Si en 2 semanas sigue igual o baja, no haría falta reducir.';
+    } else {
+      verdict = '⚠️ Por encima del peso recomendado';
+      verdictClass = 'warn';
+      advice = 'Está por encima del rango ideal. El exceso de peso en razas grandes puede afectar al desarrollo óseo y articular.';
+      feedingAdvice = 'Reduce la ración un 10% y evita premios. Ejercicio moderado sin impacto excesivo. Consulta al veterinario.';
+    }
+  } else if (pctOfRef > 70) {
+    verdict = '✅ Crecimiento óptimo';
+    verdictClass = 'good';
+    advice = 'Yarah está en el rango ideal de peso para su edad y raza. Sigue así.';
+    feedingAdvice = 'Mantén la ración actual en 3 comidas. Pesa cada 2-3 semanas para monitorizar.';
+  } else if (pctOfRef > 30) {
+    verdict = '✅ Crecimiento adecuado';
+    verdictClass = 'good';
+    advice = 'Dentro del rango saludable, en la mitad inferior. Normal para una hembra de pastor alemán.';
+    feedingAdvice = 'Mantén la ración actual. Vigila que coma toda la ración y que tenga buen apetito.';
+  } else {
+    verdict = '👀 Crecimiento en zona baja del rango';
+    verdictClass = 'good';
+    advice = 'Dentro del rango pero en la parte baja. Puede ser normal si es de complexión ligera.';
+    feedingAdvice = 'Asegúrate de que come toda la ración. Si se mantiene baja en siguientes pesadas, consulta al veterinario.';
+  }
+
+  let rateComment = '';
+  if (rateGPerDay > 0) {
+    if (rateLow) rateComment = `Gana ${rateGPerDay.toFixed(0)} g/día (por debajo de lo esperado: ${expectedRate.min}-${expectedRate.max} g/día)`;
+    else if (rateHigh) rateComment = `Gana ${rateGPerDay.toFixed(0)} g/día (por encima de lo esperado: ${expectedRate.min}-${expectedRate.max} g/día)`;
+    else rateComment = `Gana ${rateGPerDay.toFixed(0)} g/día (ritmo adecuado: ${expectedRate.min}-${expectedRate.max} g/día)`;
+  }
+
+  el.innerHTML = `
+    <div class="analysis-box">
+      <div class="verdict ${verdictClass}">${verdict}</div>
+      <div style="margin-top:6px">📏 <strong>${last.kg} kg</strong> a los ${lastAge.toFixed(1)} meses · 🎯 ${ref.min.toFixed(1)}-${ref.max.toFixed(1)} kg</div>
+      <div style="margin-top:2px;font-size:13px;color:var(--text-light)">${rateComment}</div>
+      <div style="margin-top:6px">${advice}</div>
+      <div class="tip">${feedingAdvice}</div>
+    </div>
+  `;
+}
+
+// ===== FLASH NOTIFICATIONS =====
+const FOOD_ALERTS = [
+  {
+    id: 'essential_hl',
+    title: 'Essential HL más barato',
+    body: 'El mismo Essential The Beginning Large Breed en versión Heartland cuesta 79€ (7,90€/kg) vs 95€ (9,50€/kg) la versión UK. Misma calidad, ingredientes europeos, más económico.',
+    url: 'https://www.essentialfoods.es/producto/essential-the-beginning-large-breed-10kg-hl/',
+    urlLabel: 'Ver producto'
+  },
+  {
+    id: 'acana_puppy',
+    title: 'Acana Puppy Large Breed',
+    body: 'Pienso premium sin cereales con 70% de ingredientes animales. €76,90 el saco de 11,4kg (6,75€/kg). Excelente relación calidad-precio para razas grandes.',
+    url: 'https://www.kiwoko.com/perros/especial-cachorro/pienso-para-cachorros/acana-puppy-large-breed-pienso-para-perros/ACAAPL13_M.html',
+    urlLabel: 'Ver oferta'
+  },
+  {
+    id: 'orijen_puppy',
+    title: 'Orijen Puppy Large',
+    body: 'Pienso biológicamente apropiado con 85% de ingredientes animales. ~€75 el saco de 11,4kg (6,58€/kg). Superior calidad, similar al Essential.',
+    url: 'https://www.vanypets.com/pienso-orijen/1105-4730-pienso-orijen-puppy-large.html',
+    urlLabel: 'Ver oferta'
+  },
+  {
+    id: 'eukanuba_gf',
+    title: 'Eukanuba Grain Free Puppy Large',
+    body: 'Pienso sin cereales para razas grandes con salmón. Desde ~€40 el saco de 12kg (3,33€/kg). Opción económica y de calidad contrastada.',
+    url: 'https://www.comidanimal.com/comparar/eukanuba-grain-free-puppy-razas-grandes-con-salmon-12-kg',
+    urlLabel: 'Ver precios'
+  },
+  {
+    id: 'traveness_puppy',
+    title: 'Traveness Grain Free Puppy',
+    body: 'Pienso natural español sin cereales, 65% pollo fresco. 12kg por ~€62 (5,17€/kg). Hecho en España, buena alternativa económica.',
+    url: 'https://petness.es/perros/traveness/pienso-natural-grain-free-puppy-junior-de-pollo',
+    urlLabel: 'Ver producto'
+  },
+  {
+    id: 'criadores_puppy',
+    title: 'Criadores Grain Free Pavo Cachorros',
+    body: 'Pienso español sin cereales, 58% carne (30% pavo fresco). 12kg ~€60 (5,00€/kg). Con espirulina, glucosamina y condroitina. Buena relación calidad-precio.',
+    url: 'https://www.tiendanimal.es/criadores-grain-free-pavo-pienso-para-cachorros/CRD0808_M.html',
+    urlLabel: 'Ver oferta'
+  }
+];
+
+function checkFoodAlerts() {
+  const banner = document.getElementById('flashBanner');
+  const content = document.getElementById('flashContent');
+  if (!banner || !content) return;
+  const dismissed = data.dismissedAlerts || [];
+  const unseen = FOOD_ALERTS.filter(a => !dismissed.includes(a.id));
+  if (unseen.length === 0) { banner.style.display = 'none'; return; }
+  const alert = unseen[0];
+  content.innerHTML = `<strong>${alert.title}</strong><br>${alert.body} ${alert.url ? `<a href="${alert.url}" target="_blank" style="color:#1a73e8;text-decoration:underline;font-weight:500">${alert.urlLabel}</a>` : ''}`;
+  banner.style.display = 'block';
+}
+
+function dismissFlash() {
+  const banner = document.getElementById('flashBanner');
+  if (!banner) return;
+  const content = document.getElementById('flashContent');
+  const dismissed = data.dismissedAlerts || [];
+  const text = content ? content.textContent || '' : '';
+  for (const a of FOOD_ALERTS) {
+    if (text.includes(a.title) && !dismissed.includes(a.id)) {
+      dismissed.push(a.id);
+    }
+  }
+  data.dismissedAlerts = dismissed;
+  save();
+  banner.style.display = 'none';
+  // Show next alert if any
+  setTimeout(checkFoodAlerts, 500);
+}
+
+// ===== WEIGHT =====
+function renderWeights() {
+  const tbody = document.getElementById('weightTableBody');
+  const empty = document.getElementById('weightEmpty');
+  tbody.innerHTML = '';
+  if (data.weights.length === 0) {
+    empty.style.display = 'block';
+    document.getElementById('chartCard').style.display = 'none';
+    document.getElementById('analysisCard').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  data.weights.forEach((w, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${w.date}</td><td><strong>${w.kg}</strong> kg</td><td><button class="btn btn-danger btn-sm" onclick="deleteWeight(${i})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  drawChart();
+  analyzeGrowth();
+}
+
+function addWeight() {
+  const date = document.getElementById('weightDate').value.trim();
+  const kg = parseFloat(document.getElementById('weightKg').value);
+  if (!date || isNaN(kg) || kg <= 0) { alert('Introduce fecha y peso válidos.'); return; }
+  data.weights.push({ date, kg });
+  data.weights.sort((a,b)=>parseDateNum(a.date)-parseDateNum(b.date));
+  save();
+  renderWeights();
+  renderDashboard();
+  document.getElementById('weightDate').value = '';
+  document.getElementById('weightKg').value = '';
+}
+
+function deleteWeight(i) {
+  data.weights.splice(i, 1);
+  save();
+  renderWeights();
+  renderDashboard();
+}
+
+// Reference growth curve for female German Shepherd (min/max kg by month)
+const GSD_REF = [
+  { m: 2, min: 7,  max: 9   },
+  { m: 3, min: 12, max: 15  },
+  { m: 4, min: 16, max: 20  },
+  { m: 5, min: 20, max: 25  },
+  { m: 6, min: 22, max: 28  },
+  { m: 7, min: 25, max: 30  },
+  { m: 8, min: 26, max: 32  },
+  { m: 9, min: 27, max: 33  },
+  { m: 10, min: 28, max: 34 },
+  { m: 11, min: 28, max: 35 },
+  { m: 12, min: 29, max: 35 },
+  { m: 18, min: 30, max: 35 },
+];
+
+function getRefWeight(months) {
+  if (months <= GSD_REF[0].m) return GSD_REF[0];
+  if (months >= GSD_REF[GSD_REF.length-1].m) return GSD_REF[GSD_REF.length-1];
+  for (let i = 0; i < GSD_REF.length - 1; i++) {
+    if (months >= GSD_REF[i].m && months <= GSD_REF[i+1].m) {
+      const t = (months - GSD_REF[i].m) / (GSD_REF[i+1].m - GSD_REF[i].m);
+      return {
+        min: GSD_REF[i].min + (GSD_REF[i+1].min - GSD_REF[i].min) * t,
+        max: GSD_REF[i].max + (GSD_REF[i+1].max - GSD_REF[i].max) * t,
+      };
+    }
+  }
+  return GSD_REF[GSD_REF.length-1];
+}
+
+function drawChart() {
+  const canvas = document.getElementById('weightChart');
+  const card = document.getElementById('chartCard');
+  if (!canvas || data.weights.length < 2) {
+    if (card) card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const W = rect.width || 600;
+  const H = 280;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = { top: 20, bottom: 32, left: 44, right: 16 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  // Data
+  const wts = data.weights;
+  const birth = new Date(2026, 1, 7);
+  const points = wts.map(w => {
+    const ms = parseDateNum(w.date) - birth.getTime();
+    const months = ms / (1000 * 60 * 60 * 24 * 30.44);
+    return { months, kg: w.kg, date: w.date };
+  });
+
+  const minM = Math.max(0, points[0].months - 0.5);
+  const maxM = points[points.length-1].months + 0.5;
+  const allKg = points.map(p => p.kg);
+  const refVals = points.map(p => getRefWeight(p.months));
+  const allRef = refVals.flatMap(r => [r.min, r.max]);
+  const minKg = Math.max(0, Math.floor(Math.min(...allKg, ...allRef) - 1));
+  const maxKg = Math.ceil(Math.max(...allKg, ...allRef) + 1);
+
+  function x(months) { return pad.left + ((months - minM) / (maxM - minM)) * cw; }
+  function y(kg) { return pad.top + ch - ((kg - minKg) / (maxKg - minKg)) * ch; }
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#e8e0d8';
+  ctx.lineWidth = 0.5;
+  for (let kg = minKg; kg <= maxKg; kg++) {
+    ctx.beginPath(); ctx.moveTo(pad.left, y(kg)); ctx.lineTo(W - pad.right, y(kg)); ctx.stroke();
+    ctx.fillStyle = '#999'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(kg + ' kg', pad.left - 6, y(kg) + 4);
+  }
+
+  // Reference range (shaded area)
+  const steps = 60;
+  ctx.fillStyle = 'rgba(196, 154, 108, 0.12)';
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const m = minM + (i / steps) * (maxM - minM);
+    const ref = getRefWeight(m);
+    const px = x(m);
+    if (i === 0) ctx.moveTo(px, y(ref.min));
+    else ctx.lineTo(px, y(ref.min));
+  }
+  for (let i = steps; i >= 0; i--) {
+    const m = minM + (i / steps) * (maxM - minM);
+    const ref = getRefWeight(m);
+    const px = x(m);
+    ctx.lineTo(px, y(ref.max));
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  // Reference lines
+  ctx.strokeStyle = 'rgba(196, 154, 108, 0.6)';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const m = minM + (i / steps) * (maxM - minM);
+    const ref = getRefWeight(m);
+    const px = x(m);
+    if (i === 0) ctx.moveTo(px, y(ref.min));
+    else ctx.lineTo(px, y(ref.min));
+  }
+  ctx.stroke();
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const m = minM + (i / steps) * (maxM - minM);
+    const ref = getRefWeight(m);
+    const px = x(m);
+    if (i === 0) ctx.moveTo(px, y(ref.max));
+    else ctx.lineTo(px, y(ref.max));
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Bars
+  const barW = Math.max(8, Math.min(24, (x(points[1]?.months||0) - x(points[0]?.months||0)) * 0.4));
+  points.forEach((p, i) => {
+    const bx = x(p.months) - barW / 2;
+    const by = y(p.kg);
+    const bh = y(minKg) - by;
+
+    const grad = ctx.createLinearGradient(0, by, 0, y(minKg));
+    grad.addColorStop(0, '#7a9a6a');
+    grad.addColorStop(1, '#5b7a4a');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, barW, bh, 3);
+    ctx.fill();
+
+    // Value on top
+    ctx.fillStyle = '#3d5a2e';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.kg.toFixed(1), x(p.months), by - 6);
+
+    // Date label
+    ctx.fillStyle = '#999';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(p.date, x(p.months), H - pad.bottom + 16);
+  });
+
+  // Connect line
+  if (points.length > 1) {
+    ctx.strokeStyle = '#3d5a2e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(x(p.months), y(p.kg));
+      else ctx.lineTo(x(p.months), y(p.kg));
+    });
+    ctx.stroke();
+  }
+}
+
+function analyzeGrowth() {
+  const card = document.getElementById('analysisCard');
+  const el = document.getElementById('analysisContent');
+  if (!el || data.weights.length < 2) {
+    if (card) card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  const wts = data.weights;
+  const birth = new Date(2026, 1, 7);
+  const ages = wts.map(w => {
+    const ms = parseDateNum(w.date) - birth.getTime();
+    return ms / (1000 * 60 * 60 * 24 * 30.44);
+  });
+
+  const last = wts[wts.length-1];
+  const prev = wts[wts.length-2];
+  const lastAge = ages[ages.length-1];
+  const prevAge = ages[ages.length-2];
+
+  // Growth rate (g/day)
+  const daysBetween = (lastAge - prevAge) * 30.44;
+  const gainG = (last.kg - prev.kg) * 1000;
+  const rateGPerDay = daysBetween > 0 ? gainG / daysBetween : 0;
+
+  const ref = getRefWeight(lastAge);
+  const pctOfRef = ref.min > 0 ? ((last.kg - ref.min) / (ref.max - ref.min)) * 100 : 50;
+
+  // Expected rate by age (g/day)
+  let expectedRate;
+  if (lastAge < 3) expectedRate = { min: 21, max: 28, label: '2-3 meses' };
+  else if (lastAge < 4) expectedRate = { min: 18, max: 26, label: '3-4 meses' };
+  else if (lastAge < 5) expectedRate = { min: 14, max: 21, label: '4-5 meses' };
+  else if (lastAge < 6) expectedRate = { min: 11, max: 17, label: '5-6 meses' };
+  else if (lastAge < 12) expectedRate = { min: 7, max: 14, label: '6-12 meses' };
+  else expectedRate = { min: 5, max: 10, label: '+12 meses' };
+
+  let verdict, verdictClass, advice, feedingAdvice;
+
+  const rateOk = rateGPerDay >= expectedRate.min && rateGPerDay <= expectedRate.max;
+  const rateHigh = rateGPerDay > expectedRate.max;
+  const rateLow = rateGPerDay > 0 && rateGPerDay < expectedRate.min;
+
+  if (last.kg < ref.min) {
+    if (rateHigh) {
+      verdict = '📈 Por debajo pero recuperándose';
+      verdictClass = 'good';
+      advice = 'Está por debajo del rango ideal pero su ritmo de ganancia es muy superior al esperado. Está en plena fase de recuperación. Si mantiene este ritmo alcanzará el rango ideal en poco tiempo.';
+      feedingAdvice = '📌 Mantén la ración actual. Su cuerpo está compensando. Sigue pesándola cada semana para confirmar la tendencia.';
+    } else if (rateOk) {
+      verdict = '👀 Ligeramente por debajo, ritmo correcto';
+      verdictClass = 'warn';
+      advice = 'Está un poco por debajo del rango ideal pero ganando peso a un ritmo adecuado. Es cuestión de tiempo que alcance su carril de crecimiento.';
+      feedingAdvice = '📌 Mantén la ración actual. Si en 2-3 semanas sigue igual, considera aumentar 10%.';
+    } else {
+      verdict = '⚠️ Por debajo y ganando poco peso';
+      verdictClass = 'warn';
+      advice = 'Está por debajo del rango ideal y la ganancia de peso es baja. Consulta con el veterinario para descartar problemas de salud o parásitos.';
+      feedingAdvice = '📌 Aumenta la ración un 10-15% o pasa a 4 comidas al día. Revisa heces y apetito. Visita al veterinario.';
+    }
+  } else if (last.kg > ref.max) {
+    if (rateLow) {
+      verdict = '📉 Por encima pero estabilizándose';
+      verdictClass = 'warn';
+      advice = 'Está por encima del rango ideal pero su ritmo de ganancia es bajo. Podría estar frenando naturalmente el crecimiento. Vigila la evolución.';
+      feedingAdvice = '📌 No aumentes la ración. Mantén el ejercicio moderado. Si en 2 semanas sigue igual o baja, no haría falta reducir.';
+    } else {
+      verdict = '⚠️ Por encima del peso recomendado';
+      verdictClass = 'warn';
+      advice = 'Está por encima del rango ideal. El exceso de peso en razas grandes puede afectar al desarrollo óseo y articular.';
+      feedingAdvice = '📌 Reduce la ración un 10% y evita premios. Ejercicio moderado sin impacto excesivo. Consulta al veterinario.';
+    }
+  } else if (pctOfRef > 70) {
+    verdict = '✅ Crecimiento óptimo';
+    verdictClass = 'good';
+    advice = 'Yarah está en el rango ideal de peso para su edad y raza. Sigue así.';
+    feedingAdvice = '📌 Mantén la ración actual repartida en 3 comidas. Sigue pesándola cada 2-3 semanas para monitorizar.';
+  } else if (pctOfRef > 30) {
+    verdict = '✅ Crecimiento adecuado';
+    verdictClass = 'good';
+    advice = 'Yarah está dentro del rango saludable, en la mitad inferior. Perfectamente normal para una hembra de pastor alemán.';
+    feedingAdvice = '📌 Mantén la ración actual. Vigila que coma toda la ración y que tenga buen apetito.';
+  } else {
+    verdict = '👀 Crecimiento en zona baja del rango';
+    verdictClass = 'good';
+    advice = 'Yarah está dentro del rango pero en la parte baja. Puede ser normal si es de complexión ligera.';
+    feedingAdvice = '📌 Asegúrate de que come toda la ración. Si se mantiene baja en siguientes pesadas, consulta al veterinario.';
+  }
+
+  let rateComment = '';
+  if (rateGPerDay > 0) {
+    if (rateLow) {
+      rateComment = `Gana ${rateGPerDay.toFixed(0)} g/día (por debajo de lo esperado: ${expectedRate.min}-${expectedRate.max} g/día para ${expectedRate.label}).`;
+    } else if (rateHigh) {
+      rateComment = `Gana ${rateGPerDay.toFixed(0)} g/día (por encima de lo esperado: ${expectedRate.min}-${expectedRate.max} g/día para ${expectedRate.label}).`;
+    } else {
+      rateComment = `Gana ${rateGPerDay.toFixed(0)} g/día (ritmo adecuado: ${expectedRate.min}-${expectedRate.max} g/día para ${expectedRate.label}).`;
+    }
+  }
+
+  const html = `
+    <div class="analysis-box">
+      <div class="verdict ${verdictClass}">${verdict}</div>
+      <div style="margin-top:6px">📏 Peso actual: <strong>${last.kg} kg</strong> a los <strong>${lastAge.toFixed(1)} meses</strong></div>
+      <div>🎯 Rango ideal: <strong>${ref.min.toFixed(1)} - ${ref.max.toFixed(1)} kg</strong></div>
+      <div style="margin-top:4px">${rateComment}</div>
+      <div style="margin-top:8px">${advice}</div>
+      <div class="tip">${feedingAdvice}</div>
+    </div>
+  `;
+  el.innerHTML = html;
+}
+function parseDateNum(d) {
+  const p = d.split('/');
+  if (p.length === 3) {
+    let y = parseInt(p[2]);
+    if (y < 100) y += 2000;
+    return new Date(y, parseInt(p[1])-1, parseInt(p[0])).getTime();
+  }
+  return 0;
+}
+
+// ===== VET =====
+function renderVet() {
+  const list = document.getElementById('vetList');
+  const empty = document.getElementById('vetEmpty');
+  list.innerHTML = '';
+  if (data.vetVisits.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  data.vetVisits.slice().reverse().forEach((v, ri) => {
+    const i = data.vetVisits.length - 1 - ri;
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:14px 0;border-bottom:1px solid var(--border)';
+    let vaccines = '';
+    if (v.vaccines && v.vaccines.length > 0) {
+      vaccines = v.vaccines.map(vc => `<span class="tag tag-vaccine">💉 ${vc}</span>`).join('');
+    }
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:6px">
+        <div><strong>${v.date}</strong> <span class="tag tag-reason">${v.reason}</span></div>
+        <button class="btn btn-danger btn-sm" onclick="deleteVet(${i})">✕</button>
+      </div>
+      <div style="margin-top:4px">${vaccines}</div>
+      ${v.notes ? '<div style="margin-top:4px;font-size:13px;color:var(--text-light)">📝 '+v.notes+'</div>' : ''}
+    `;
+    list.appendChild(div);
+  });
+}
+
+function addVetVisit() {
+  const date = document.getElementById('vetDate').value.trim();
+  let reason = document.getElementById('vetReason').value;
+  if (reason === 'otro') reason = document.getElementById('vetReasonCustom').value.trim();
+  if (!date || !reason) { alert('Introduce fecha y motivo.'); return; }
+  const vaccines = [];
+  document.querySelectorAll('#vaccineCheckboxes input:checked').forEach(cb => vaccines.push(cb.value));
+  const notes = document.getElementById('vetNotes').value.trim();
+  data.vetVisits.push({ date, reason, vaccines, notes });
+  save();
+  renderVet();
+  document.getElementById('vetDate').value = '';
+  document.getElementById('vetReason').value = '';
+  document.getElementById('vetReasonCustom').value = '';
+  document.getElementById('vetNotes').value = '';
+  document.querySelectorAll('#vaccineCheckboxes input').forEach(cb => cb.checked = false);
+}
+
+function deleteVet(i) {
+  data.vetVisits.splice(i, 1);
+  save();
+  renderVet();
+}
+
+// ===== PHOTOS =====
+function renderGallery() {
+  const grid = document.getElementById('galleryGrid');
+  const empty = document.getElementById('galleryEmpty');
+  grid.innerHTML = '';
+  if (data.photos.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  data.photos.slice().reverse().forEach((p, ri) => {
+    const i = data.photos.length - 1 - ri;
+    const item = document.createElement('div');
+    item.className = 'item';
+    item.innerHTML = `<img src="${p.data}" alt="${p.date}"><div class="date">${p.date}</div><button class="del" onclick="deletePhoto(${i})">✕</button>`;
+    grid.appendChild(item);
+  });
+}
+
+function addGalleryPhoto() {
+  const inp = document.getElementById('galleryInput');
+  if (!inp.files || !inp.files[0]) { alert('Selecciona una foto.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let date = document.getElementById('photoDate').value.trim();
+    if (!date) {
+      const d = new Date();
+      date = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2);
+    }
+    data.photos.push({ data: e.target.result, date });
+    save();
+    renderGallery();
+    inp.value = '';
+    document.getElementById('photoDate').value = '';
+  };
+  reader.readAsDataURL(inp.files[0]);
+}
+
+function deletePhoto(i) {
+  data.photos.splice(i, 1);
+  save();
+  renderGallery();
+}
+
+// ===== DOCUMENTS =====
+function renderDocs() {
+  const list = document.getElementById('docList');
+  const empty = document.getElementById('docEmpty');
+  list.innerHTML = '';
+  if (data.documents.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  data.documents.slice().reverse().forEach((d, ri) => {
+    const i = data.documents.length - 1 - ri;
+    const div = document.createElement('div');
+    div.className = 'doc-item';
+    const isImg = d.type && d.type.startsWith('image/');
+    div.innerHTML = `
+      <span style="font-size:24px">${isImg ? '🖼' : '📄'}</span>
+      <div class="doc-name"><a href="${d.data}" download="${d.name}" target="_blank">${d.name}</a></div>
+      <div class="doc-date">${d.date}</div>
+      <button class="btn btn-danger btn-sm" onclick="deleteDoc(${i})">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function addDocument() {
+  const inp = document.getElementById('docInput');
+  if (!inp.files || !inp.files[0]) { alert('Selecciona un documento.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let name = document.getElementById('docName').value.trim();
+    if (!name) name = inp.files[0].name;
+    const d = new Date();
+    const date = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2);
+    data.documents.push({ data: e.target.result, name, date, type: inp.files[0].type });
+    save();
+    renderDocs();
+    inp.value = '';
+    document.getElementById('docName').value = '';
+  };
+  reader.readAsDataURL(inp.files[0]);
+}
+
+function deleteDoc(i) {
+  data.documents.splice(i, 1);
+  save();
+  renderDocs();
+}
+
+// ===== NAVIGATION =====
+function initNav() {
+  document.querySelectorAll('nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('section-' + btn.dataset.section).classList.add('active');
+      if (btn.dataset.section === 'weight') setTimeout(drawChart, 50);
+    });
+  });
+}
+
+// ===== EVENTS =====
+function initEvents() {
+  // Profile photo
+  document.getElementById('profileInput').addEventListener('change', function(e) {
+    if (this.files && this.files[0]) {
+      const r = new FileReader();
+      r.onload = function(ev) {
+        data.profilePhoto = ev.target.result;
+        save();
+        renderProfilePhoto();
+      };
+      r.readAsDataURL(this.files[0]);
+    }
+  });
+
+  // Profile drag & drop
+  const pu = document.getElementById('profileUpload');
+  pu.addEventListener('dragover', e => { e.preventDefault(); pu.style.borderColor = 'var(--primary)'; });
+  pu.addEventListener('dragleave', () => { pu.style.borderColor = ''; });
+  pu.addEventListener('drop', e => {
+    e.preventDefault();
+    pu.style.borderColor = '';
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const r = new FileReader();
+      r.onload = function(ev) {
+        data.profilePhoto = ev.target.result;
+        save();
+        renderProfilePhoto();
+      };
+      r.readAsDataURL(e.dataTransfer.files[0]);
+    }
+  });
+
+  // Chip input
+  document.getElementById('chipInput').addEventListener('change', function() {
+    data.chip = this.value.trim();
+    save();
+  });
+
+  // Adult weight selector
+  document.getElementById('adultWeight').addEventListener('change', function() {
+    data.adultWeight = parseInt(this.value);
+    save();
+    renderDashboard();
+  });
+
+  // Vet reason custom
+  document.getElementById('vetReason').addEventListener('change', function() {
+    document.getElementById('customReasonWrap').style.display = this.value === 'otro' ? 'block' : 'none';
+  });
+
+  // Gallery drag & drop
+  const dz = document.getElementById('photoDropZone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--primary)'; });
+  dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.style.borderColor = '';
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      document.getElementById('galleryInput').files = e.dataTransfer.files;
+      addGalleryPhoto();
+    }
+  });
+
+  // Document drag & drop
+  const ddz = document.getElementById('docDropZone');
+  ddz.addEventListener('dragover', e => { e.preventDefault(); ddz.style.borderColor = 'var(--primary)'; });
+  ddz.addEventListener('dragleave', () => { ddz.style.borderColor = ''; });
+  ddz.addEventListener('drop', e => {
+    e.preventDefault();
+    ddz.style.borderColor = '';
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      document.getElementById('docInput').files = e.dataTransfer.files;
+      addDocument();
+    }
+  });
+
+  // Auto-update age every minute
+  setInterval(renderDashboard, 60000);
+
+  // Redraw chart on resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { drawChart(); }, 300);
+  });
+}
+
+// ===== INIT =====
+load();
+initNav();
+initEvents();
+renderDashboard();
+renderWeights();
+renderVet();
+renderGallery();
+renderDocs();
+checkFoodAlerts();
+</script>
+</body>
+</html>
