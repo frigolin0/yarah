@@ -174,7 +174,15 @@ tr:hover td { background: #faf8f5; }
   </div>
 </div>
 
-<div id="spinner"><div style="background:var(--card);padding:20px 32px;border-radius:12px;box-shadow:var(--shadow)">⏳ Cargando...</div></div>
+<div id="spinner">
+  <div style="background:var(--card);padding:24px 32px;border-radius:12px;box-shadow:var(--shadow);text-align:center;min-width:240px">
+    <div id="spinnerMsg" style="margin-bottom:12px">⏳ Cargando...</div>
+    <div id="progressWrap" style="display:none;width:100%;height:8px;background:var(--bg);border-radius:4px;overflow:hidden">
+      <div id="progressBar" style="width:0%;height:100%;background:var(--primary);border-radius:4px;transition:width 0.3s"></div>
+    </div>
+    <div id="progressPct" style="font-size:12px;color:var(--text-light);margin-top:6px;display:none"></div>
+  </div>
+</div>
 
 <header>
   <div class="header-left">
@@ -508,7 +516,42 @@ async function saveData() {
   try { await DATA_REF.set(data); } catch(e) { console.error('Save error', e); }
 }
 
-function showSpinner(v) { document.getElementById('spinner').className = v ? 'show' : ''; }
+function showSpinner(v, msg) {
+  document.getElementById('spinner').className = v ? 'show' : '';
+  if (msg) document.getElementById('spinnerMsg').textContent = msg;
+  if (!v) {
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('progressPct').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('spinnerMsg').textContent = '⏳ Cargando...';
+  }
+}
+function setProgress(pct, msg) {
+  const pw = document.getElementById('progressWrap');
+  const pp = document.getElementById('progressPct');
+  pw.style.display = 'block';
+  pp.style.display = 'block';
+  document.getElementById('progressBar').style.width = Math.min(100, pct) + '%';
+  pp.textContent = Math.round(pct) + '%';
+  if (msg) document.getElementById('spinnerMsg').textContent = msg;
+}
+function uploadFileWithProgress(storageRef, file, msg) {
+  return new Promise((resolve, reject) => {
+    showSpinner(true, msg || 'Subiendo...');
+    const task = storageRef.put(file);
+    task.on('state_changed',
+      snap => setProgress((snap.bytesTransferred / snap.totalBytes) * 100),
+      err => { showSpinner(false); reject(err); },
+      async () => {
+        try {
+          const url = await task.snapshot.ref.getDownloadURL();
+          showSpinner(false);
+          resolve(url);
+        } catch(e) { showSpinner(false); reject(e); }
+      }
+    );
+  });
+}
 
 // ===== FEEDING TABLE =====
 const FEEDING_TABLE = {
@@ -899,19 +942,15 @@ async function addGalleryPhoto() {
   if (!inp.files || !inp.files[0]) { alert('Selecciona una foto.'); return; }
   let date = document.getElementById('photoDate').value.trim();
   if (!date) { const d = new Date(); date = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2); }
-  showSpinner(true);
   try {
     const file = inp.files[0];
-    const ref = STORAGE.ref('photos/' + Date.now() + '_' + file.name);
-    await ref.put(file);
-    const url = await ref.getDownloadURL();
+    const url = await uploadFileWithProgress(STORAGE.ref('photos/' + Date.now() + '_' + file.name), file, 'Subiendo foto...');
     if (!data.photos) data.photos = [];
     data.photos.push({ url, date });
     await saveData();
     renderGallery();
     inp.value = ''; document.getElementById('photoDate').value = '';
   } catch(e) { alert('Error al subir foto: ' + e.message); }
-  showSpinner(false);
 }
 
 async function deletePhoto(i) {
@@ -944,12 +983,9 @@ function renderDocs() {
 async function addDocument() {
   const inp = document.getElementById('docInput');
   if (!inp.files || !inp.files[0]) { alert('Selecciona un documento.'); return; }
-  showSpinner(true);
   try {
     const file = inp.files[0];
-    const ref = STORAGE.ref('documents/' + Date.now() + '_' + file.name);
-    await ref.put(file);
-    const url = await ref.getDownloadURL();
+    const url = await uploadFileWithProgress(STORAGE.ref('documents/' + Date.now() + '_' + file.name), file, 'Subiendo documento...');
     let name = document.getElementById('docName').value.trim();
     if (!name) name = file.name;
     const d = new Date(); const date = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2);
@@ -959,7 +995,6 @@ async function addDocument() {
     renderDocs();
     inp.value = ''; document.getElementById('docName').value = '';
   } catch(e) { alert('Error al subir documento: ' + e.message); }
-  showSpinner(false);
 }
 
 async function deleteDoc(i) {
@@ -988,17 +1023,12 @@ function initNav() {
 function initEvents() {
   document.getElementById('profileInput').addEventListener('change', async function() {
     if (this.files && this.files[0]) {
-      showSpinner(true);
       try {
-        const file = this.files[0];
-        const ref = STORAGE.ref('profile/' + Date.now() + '_' + file.name);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
+        const url = await uploadFileWithProgress(STORAGE.ref('profile/' + Date.now() + '_' + this.files[0].name), this.files[0], 'Subiendo foto de perfil...');
         data.profilePhoto = { url };
         await saveData();
         renderProfilePhoto();
       } catch(e) { alert('Error: ' + e.message); }
-      showSpinner(false);
     }
   });
 
@@ -1008,17 +1038,12 @@ function initEvents() {
   pu.addEventListener('drop', async e => {
     e.preventDefault(); pu.style.borderColor = '';
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      showSpinner(true);
       try {
-        const file = e.dataTransfer.files[0];
-        const ref = STORAGE.ref('profile/' + Date.now() + '_' + file.name);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
+        const url = await uploadFileWithProgress(STORAGE.ref('profile/' + Date.now() + '_' + e.dataTransfer.files[0].name), e.dataTransfer.files[0], 'Subiendo foto de perfil...');
         data.profilePhoto = { url };
         await saveData();
         renderProfilePhoto();
       } catch(e) { alert('Error: ' + e.message); }
-      showSpinner(false);
     }
   });
 
