@@ -444,6 +444,7 @@ const DATA_REF = DB.collection('data').doc('main');
 
 let currentUser = null;
 let isRegistering = false;
+const ALLOWED_EMAILS = ['amarcoida@gmail.com', 'mayitagutierrezrodriguez@gmail.com'];
 
 // ===== AUTH =====
 AUTH.onAuthStateChanged(user => {
@@ -470,11 +471,12 @@ document.getElementById('loginToggle').addEventListener('click', () => {
 });
 
 function handleAuth() {
-  const email = document.getElementById('loginEmail').value.trim();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
   if (!email || !pass) { errEl.textContent = 'Introduce email y contraseña'; errEl.style.display = 'block'; return; }
+  if (!ALLOWED_EMAILS.includes(email)) { errEl.textContent = 'Acceso solo para la familia. Este email no está autorizado.'; errEl.style.display = 'block'; return; }
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = '⏳...';
   (isRegistering ? AUTH.createUserWithEmailAndPassword(email, pass) : AUTH.signInWithEmailAndPassword(email, pass))
