@@ -7,7 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<!-- storage-compat removed (no uploads needed) -->
 <style>
 :root {
   --bg: #f5f0eb;
@@ -76,12 +76,6 @@ tr:hover td { background: #faf8f5; }
 .analysis-box .verdict.bad { color: var(--danger); }
 .analysis-box .tip { margin-top: 6px; color: var(--text-light); font-size: 13px; }
 .profile-area { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-.photo-upload { position: relative; width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 3px dashed var(--border); background: var(--bg); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-.photo-upload.has-photo { border-style: solid; }
-.photo-upload img { width: 100%; height: 100%; object-fit: cover; }
-.photo-upload .placeholder { text-align: center; color: var(--text-light); font-size: 10px; padding: 8px; }
-.photo-upload .placeholder svg { width: 28px; height: 28px; margin-bottom: 4px; opacity: 0.5; }
-.photo-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .profile-info { flex: 1; min-width: 160px; }
 .profile-info .name { font-size: 22px; font-weight: 700; color: var(--primary-dark); }
 .profile-info .detail { font-size: 14px; color: var(--text-light); margin-top: 3px; }
@@ -93,16 +87,7 @@ tr:hover td { background: #faf8f5; }
 .feeding-box .per-meal .meal { background: var(--card); padding: 8px 14px; border-radius: 8px; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); flex: 1; min-width: 80px; text-align: center; }
 .feeding-box .note { font-size: 12px; color: var(--text-light); margin-top: 8px; font-style: italic; }
 .age-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--accent); color: #fff; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-.gallery .item { border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 1; background: var(--bg); }
-.gallery .item img { width: 100%; height: 100%; object-fit: cover; }
-.gallery .item .date { position: absolute; bottom: 0; left: 0; right: 0; padding: 5px 8px; background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; text-align: center; }
-.gallery .item .del { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.5); color: #fff; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
-.doc-list .doc-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.doc-list .doc-item:last-child { border-bottom: none; }
-.doc-list .doc-name { flex: 1; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.doc-list .doc-name a { word-break: break-all; }
-.doc-list .doc-date { font-size: 12px; color: var(--text-light); white-space: nowrap; }
+/* gallery and doc-list styles removed (no Storage) */
 
 #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 16px; }
 #loginOverlay.hidden { display: none; }
@@ -129,13 +114,10 @@ tr:hover td { background: #faf8f5; }
   .form-row { flex-direction: column; gap: 0; }
   .form-row > * { flex: none; }
   .profile-area { flex-direction: column; align-items: center; text-align: center; }
-  .photo-upload { width: 90px; height: 90px; }
   .profile-info .name { font-size: 20px; }
   .feeding-box .amount { font-size: 24px; }
   .feeding-box .per-meal .meal { min-width: 0; flex: 1; }
   nav button { font-size: 11px; padding: 10px 4px; min-width: 56px; }
-  .gallery { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
-  .gallery .item .del { width: 26px; height: 26px; }
   .login-box { padding: 24px 20px; }
   .login-box h1 { font-size: 22px; }
   #compareTable { font-size: 12px; }
@@ -148,9 +130,9 @@ tr:hover td { background: #faf8f5; }
 @media (max-width: 400px) {
   header h1 { font-size: 14px; }
   header .subtitle { font-size: 9px; }
+  .profile-info .name { font-size: 18px; }
   .card { padding: 12px; }
   .card h2 { font-size: 15px; }
-  .gallery { grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .feeding-box .per-meal { flex-direction: column; }
   .feeding-box .per-meal .meal { text-align: left; }
   .profile-info .name { font-size: 18px; }
@@ -174,15 +156,7 @@ tr:hover td { background: #faf8f5; }
   </div>
 </div>
 
-<div id="spinner">
-  <div style="background:var(--card);padding:24px 32px;border-radius:12px;box-shadow:var(--shadow);text-align:center;min-width:240px">
-    <div id="spinnerMsg" style="margin-bottom:12px">⏳ Cargando...</div>
-    <div id="progressWrap" style="display:none;width:100%;height:8px;background:var(--bg);border-radius:4px;overflow:hidden">
-      <div id="progressBar" style="width:0%;height:100%;background:var(--primary);border-radius:4px;transition:width 0.3s"></div>
-    </div>
-    <div id="progressPct" style="font-size:12px;color:var(--text-light);margin-top:6px;display:none"></div>
-  </div>
-</div>
+<div id="spinner"><div style="background:var(--card);padding:20px 32px;border-radius:12px;box-shadow:var(--shadow)">⏳ Cargando...</div></div>
 
 <header>
   <div class="header-left">
@@ -200,8 +174,6 @@ tr:hover td { background: #faf8f5; }
   <button class="active" data-section="dashboard">Inicio</button>
   <button data-section="weight">Peso</button>
   <button data-section="vet">Veterinario</button>
-  <button data-section="photos">Fotos</button>
-  <button data-section="docs">Documentos</button>
   <button data-section="nutrition">Alimentación</button>
 </nav>
 
@@ -211,14 +183,6 @@ tr:hover td { background: #faf8f5; }
 <section id="section-dashboard" class="section active">
   <div class="card">
     <div class="profile-area">
-      <div class="photo-upload" id="profileUpload">
-        <img id="profilePreview" style="display:none" alt="Yarah">
-        <div class="placeholder" id="profilePlaceholder">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 15a4 4 0 100-8 4 4 0 000 8z"/><path d="M20 21a8 8 0 10-16 0"/></svg>
-          <div>Arrastra o haz clic</div>
-        </div>
-        <input type="file" accept="image/*" id="profileInput">
-      </div>
       <div class="profile-info">
         <div class="name">Yarah</div>
         <div class="detail">Pastor Alemán · Hembra</div>
@@ -344,47 +308,6 @@ tr:hover td { background: #faf8f5; }
   </div>
 </section>
 
-<!-- PHOTOS -->
-<section id="section-photos" class="section">
-  <div class="card">
-    <h2>📸 Subir foto</h2>
-    <div style="border:2px dashed var(--border);border-radius:12px;padding:30px;text-align:center;cursor:pointer;position:relative;background:var(--bg)" id="photoDropZone">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;opacity:0.4;margin-bottom:8px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="M3 16l5-5 3 3 4-4 6 6"/></svg>
-      <div style="color:var(--text-light)">Arrastra una foto aquí o haz clic para seleccionar</div>
-      <input type="file" accept="image/*" id="galleryInput" style="position:absolute;inset:0;opacity:0;cursor:pointer">
-    </div>
-    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
-      <label style="flex:1;margin:0"><input type="text" id="photoDate" placeholder="Fecha (dd/mm/aa) - opcional" style="margin:0"></label>
-      <button class="btn btn-accent" onclick="addGalleryPhoto()">Subir foto</button>
-    </div>
-  </div>
-  <div class="card">
-    <h2>📷 Evolución de Yarah</h2>
-    <div class="gallery" id="galleryGrid"></div>
-    <div class="empty" id="galleryEmpty"><p>No hay fotos todavía.</p></div>
-  </div>
-</section>
-
-<!-- DOCUMENTS -->
-<section id="section-docs" class="section">
-  <div class="card">
-    <h2>📄 Subir documento</h2>
-    <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;position:relative;background:var(--bg)" id="docDropZone">
-      <div style="color:var(--text-light)">Arrastra un documento aquí o haz clic para seleccionar<br><small style="opacity:0.7">PDF, JPG, PNG</small></div>
-      <input type="file" accept=".pdf,image/*" id="docInput" style="position:absolute;inset:0;opacity:0;cursor:pointer">
-    </div>
-    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
-      <label style="flex:1;margin:0"><input type="text" id="docName" placeholder="Nombre del documento (ej. Censo)" style="margin:0"></label>
-      <button class="btn btn-accent" onclick="addDocument()">Subir</button>
-    </div>
-  </div>
-  <div class="card">
-    <h2>📁 Documentos</h2>
-    <div class="doc-list" id="docList"></div>
-    <div class="empty" id="docEmpty"><p>No hay documentos subidos.</p></div>
-  </div>
-</section>
-
 <!-- ALIMENTACION -->
 <section id="section-nutrition" class="section">
   <div class="card">
@@ -440,14 +363,12 @@ firebase.initializeApp({
   apiKey: "AIzaSyAQ80nA7F559DPPKiP72CM4LYgkz4judlQ",
   authDomain: "yarah-app.firebaseapp.com",
   projectId: "yarah-app",
-  storageBucket: "yarah-app.firebasestorage.app",
   messagingSenderId: "593808537395",
   appId: "1:593808537395:web:bec5eb9812dabd98a47046"
 });
 
 const AUTH = firebase.auth();
 const DB = firebase.firestore();
-const STORAGE = firebase.storage();
 const DATA_REF = DB.collection('data').doc('main');
 
 let currentUser = null;
@@ -504,7 +425,7 @@ async function loadData() {
     if (snap.exists) {
       data = snap.data();
     } else {
-      data = { weights: [], vetVisits: [], photos: [], documents: [], chip: '', adultWeight: 30, dismissedAlerts: [], profilePhoto: null };
+      data = { weights: [], vetVisits: [], chip: '', adultWeight: 30 };
       await DATA_REF.set(data);
     }
   } catch(e) { console.error('Load error', e); alert('Error al cargar datos: ' + e.message); }
@@ -516,81 +437,8 @@ async function saveData() {
   try { await DATA_REF.set(data); } catch(e) { console.error('Save error', e); }
 }
 
-function showSpinner(v, msg) {
-  document.getElementById('spinner').className = v ? 'show' : '';
-  if (msg) document.getElementById('spinnerMsg').textContent = msg;
-  if (!v) {
-    document.getElementById('progressWrap').style.display = 'none';
-    document.getElementById('progressPct').style.display = 'none';
-    document.getElementById('progressBar').style.width = '0%';
-    document.getElementById('spinnerMsg').textContent = '⏳ Cargando...';
-  }
-}
-function setProgress(pct, msg) {
-  const pw = document.getElementById('progressWrap');
-  const pp = document.getElementById('progressPct');
-  pw.style.display = 'block';
-  pp.style.display = 'block';
-  document.getElementById('progressBar').style.width = Math.min(100, pct) + '%';
-  pp.textContent = Math.round(pct) + '%';
-  if (msg) document.getElementById('spinnerMsg').textContent = msg;
-}
-const API_KEY = 'AIzaSyAQ80nA7F559DPPKiP72CM4LYgkz4judlQ';
-
-function uploadFileWithProgress(storageRef, file, msg) {
-  return new Promise((resolve, reject) => {
-    showSpinner(true, msg || 'Subiendo...');
-    const task = storageRef.put(file);
-    task.on('state_changed',
-      snap => setProgress((snap.bytesTransferred / snap.totalBytes) * 100),
-      async err => {
-        console.error('SDK upload error:', err);
-        try {
-          const url = await uploadViaApiKey(storageRef, file, msg);
-          resolve(url);
-        } catch(e2) {
-          console.error('Fallback also failed:', e2);
-          showSpinner(false);
-          reject(new Error('Error al subir. Verifica que Firebase Storage esté activado en la consola.'));
-        }
-      },
-      async () => {
-        try {
-          const url = await task.snapshot.ref.getDownloadURL();
-          showSpinner(false);
-          resolve(url);
-        } catch(e) { showSpinner(false); reject(e); }
-      }
-    );
-  });
-}
-
-async function uploadViaApiKey(storageRef, file, msg) {
-  const bucket = 'yarah-app.firebasestorage.app';
-  const path = storageRef.fullPath;
-  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?name=${encodeURIComponent(path)}&key=${API_KEY}&uploadType=media`;
-  showSpinner(true, msg || 'Subiendo...');
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.upload.onprogress = e => {
-      if (e.lengthComputable) setProgress((e.loaded / e.total) * 100);
-    };
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        const data = JSON.parse(xhr.responseText);
-        const dlUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(data.name)}?alt=media`;
-        showSpinner(false);
-        resolve(dlUrl);
-      } else {
-        reject(new Error('HTTP ' + xhr.status));
-      }
-    };
-    xhr.onerror = () => reject(new Error('Network error'));
-    xhr.open('POST', url);
-    xhr.setRequestHeader('Content-Type', 'text/plain');
-    xhr.send(file);
-  });
-}
+function showSpinner(v) { document.getElementById('spinner').className = v ? 'show' : ''; }
+// upload functions removed (no Storage needed)
 
 // ===== FEEDING TABLE =====
 const FEEDING_TABLE = {
@@ -697,8 +545,6 @@ function renderAll() {
   renderDashboard();
   renderWeights();
   renderVet();
-  renderGallery();
-  renderDocs();
 }
 
 // ===== DASHBOARD =====
@@ -727,24 +573,7 @@ function renderDashboard() {
   }
   document.getElementById('adultWeight').value = aw;
   document.getElementById('chipInput').value = data.chip || '';
-  renderProfilePhoto();
   renderDashAnalysis();
-}
-
-function renderProfilePhoto() {
-  const img = document.getElementById('profilePreview');
-  const pl = document.getElementById('profilePlaceholder');
-  const up = document.getElementById('profileUpload');
-  if (data.profilePhoto && data.profilePhoto.url) {
-    img.src = data.profilePhoto.url;
-    img.style.display = 'block';
-    pl.style.display = 'none';
-    up.classList.add('has-photo');
-  } else {
-    img.style.display = 'none';
-    pl.style.display = 'block';
-    up.classList.remove('has-photo');
-  }
 }
 
 function renderDashAnalysis() {
@@ -960,91 +789,6 @@ function deleteVet(i) {
   saveData().then(renderVet);
 }
 
-// ===== PHOTOS =====
-function renderGallery() {
-  if (!data) return;
-  const grid = document.getElementById('galleryGrid');
-  const empty = document.getElementById('galleryEmpty');
-  grid.innerHTML = '';
-  if (!data.photos || data.photos.length === 0) { empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  data.photos.slice().reverse().forEach((p, ri) => {
-    const i = data.photos.length - 1 - ri;
-    const item = document.createElement('div'); item.className = 'item';
-    item.innerHTML = `<img src="${p.url}" alt="${p.date}"><div class="date">${p.date}</div><button class="del" onclick="deletePhoto(${i})">✕</button>`;
-    grid.appendChild(item);
-  });
-}
-
-async function addGalleryPhoto() {
-  const inp = document.getElementById('galleryInput');
-  if (!inp.files || !inp.files[0]) { alert('Selecciona una foto.'); return; }
-  let date = document.getElementById('photoDate').value.trim();
-  if (!date) { const d = new Date(); date = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2); }
-  try {
-    const file = inp.files[0];
-    const url = await uploadFileWithProgress(STORAGE.ref('photos/' + Date.now() + '_' + file.name), file, 'Subiendo foto...');
-    if (!data.photos) data.photos = [];
-    data.photos.push({ url, date });
-    await saveData();
-    renderGallery();
-    inp.value = ''; document.getElementById('photoDate').value = '';
-  } catch(e) { alert('Error al subir foto: ' + e.message); }
-}
-
-async function deletePhoto(i) {
-  if (!data.photos) return;
-  const photo = data.photos[i];
-  data.photos.splice(i, 1);
-  await saveData();
-  renderGallery();
-  // Try to delete from storage
-  try { if (photo.url) { const ref = STORAGE.refFromURL(photo.url); await ref.delete(); } } catch(e) {}
-}
-
-// ===== DOCUMENTS =====
-function renderDocs() {
-  if (!data) return;
-  const list = document.getElementById('docList');
-  const empty = document.getElementById('docEmpty');
-  list.innerHTML = '';
-  if (!data.documents || data.documents.length === 0) { empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  data.documents.slice().reverse().forEach((d, ri) => {
-    const i = data.documents.length - 1 - ri;
-    const div = document.createElement('div'); div.className = 'doc-item';
-    const isImg = d.type && d.type.startsWith('image/');
-    div.innerHTML = `<span style="font-size:24px">${isImg ? '🖼' : '📄'}</span><div class="doc-name"><a href="${d.url}" download="${d.name}" target="_blank">${d.name}</a></div><div class="doc-date">${d.date}</div><button class="btn btn-danger btn-sm" onclick="deleteDoc(${i})">✕</button>`;
-    list.appendChild(div);
-  });
-}
-
-async function addDocument() {
-  const inp = document.getElementById('docInput');
-  if (!inp.files || !inp.files[0]) { alert('Selecciona un documento.'); return; }
-  try {
-    const file = inp.files[0];
-    const url = await uploadFileWithProgress(STORAGE.ref('documents/' + Date.now() + '_' + file.name), file, 'Subiendo documento...');
-    let name = document.getElementById('docName').value.trim();
-    if (!name) name = file.name;
-    const d = new Date(); const date = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2);
-    if (!data.documents) data.documents = [];
-    data.documents.push({ url, name, date, type: file.type });
-    await saveData();
-    renderDocs();
-    inp.value = ''; document.getElementById('docName').value = '';
-  } catch(e) { alert('Error al subir documento: ' + e.message); }
-}
-
-async function deleteDoc(i) {
-  if (!data.documents) return;
-  const doc = data.documents[i];
-  data.documents.splice(i, 1);
-  await saveData();
-  renderDocs();
-  try { if (doc.url) { const ref = STORAGE.refFromURL(doc.url); await ref.delete(); } } catch(e) {}
-}
-
 // ===== NAV =====
 function initNav() {
   document.querySelectorAll('nav button').forEach(btn => {
@@ -1060,32 +804,6 @@ function initNav() {
 
 // ===== EVENTS =====
 function initEvents() {
-  document.getElementById('profileInput').addEventListener('change', async function() {
-    if (this.files && this.files[0]) {
-      try {
-        const url = await uploadFileWithProgress(STORAGE.ref('profile/' + Date.now() + '_' + this.files[0].name), this.files[0], 'Subiendo foto de perfil...');
-        data.profilePhoto = { url };
-        await saveData();
-        renderProfilePhoto();
-      } catch(e) { alert('Error: ' + e.message); }
-    }
-  });
-
-  const pu = document.getElementById('profileUpload');
-  pu.addEventListener('dragover', e => { e.preventDefault(); pu.style.borderColor = 'var(--primary)'; });
-  pu.addEventListener('dragleave', () => { pu.style.borderColor = ''; });
-  pu.addEventListener('drop', async e => {
-    e.preventDefault(); pu.style.borderColor = '';
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      try {
-        const url = await uploadFileWithProgress(STORAGE.ref('profile/' + Date.now() + '_' + e.dataTransfer.files[0].name), e.dataTransfer.files[0], 'Subiendo foto de perfil...');
-        data.profilePhoto = { url };
-        await saveData();
-        renderProfilePhoto();
-      } catch(e) { alert('Error: ' + e.message); }
-    }
-  });
-
   document.getElementById('chipInput').addEventListener('change', function() {
     data.chip = this.value.trim(); saveData();
   });
@@ -1097,18 +815,6 @@ function initEvents() {
   document.getElementById('vetReason').addEventListener('change', function() {
     document.getElementById('customReasonWrap').style.display = this.value === 'otro' ? 'block' : 'none';
   });
-
-  const dz = document.getElementById('photoDropZone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--primary)'; });
-  dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor = '';
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) { document.getElementById('galleryInput').files = e.dataTransfer.files; addGalleryPhoto(); } });
-
-  const ddz = document.getElementById('docDropZone');
-  ddz.addEventListener('dragover', e => { e.preventDefault(); ddz.style.borderColor = 'var(--primary)'; });
-  ddz.addEventListener('dragleave', () => { ddz.style.borderColor = ''; });
-  ddz.addEventListener('drop', e => { e.preventDefault(); ddz.style.borderColor = '';
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) { document.getElementById('docInput').files = e.dataTransfer.files; addDocument(); } });
 
   setInterval(renderDashboard, 60000);
 
