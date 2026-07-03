@@ -535,32 +535,26 @@ function setProgress(pct, msg) {
   pp.textContent = Math.round(pct) + '%';
   if (msg) document.getElementById('spinnerMsg').textContent = msg;
 }
+const API_KEY = 'AIzaSyAQ80nA7F559DPPKiP72CM4LYgkz4judlQ';
+
 function uploadFileWithProgress(storageRef, file, msg) {
   return new Promise((resolve, reject) => {
     showSpinner(true, msg || 'Subiendo...');
-    let completed = false;
     const task = storageRef.put(file);
     task.on('state_changed',
-      snap => {
-        if (!completed) setProgress((snap.bytesTransferred / snap.totalBytes) * 100);
-        if (snap.bytesTransferred === snap.totalBytes && !completed) {
-          completed = true;
-        }
-      },
+      snap => setProgress((snap.bytesTransferred / snap.totalBytes) * 100),
       async err => {
-        showSpinner(false);
-        console.error('Upload error:', err);
-        // CORS fallback: try direct fetch
+        console.error('SDK upload error:', err);
         try {
-          const url = await uploadViaFetch(storageRef, file, msg);
+          const url = await uploadViaApiKey(storageRef, file, msg);
           resolve(url);
         } catch(e2) {
-          console.error('Fetch fallback also failed:', e2);
-          reject(new Error('Error de CORS. Abre F12 > Console para más detalles.'));
+          console.error('Fallback also failed:', e2);
+          showSpinner(false);
+          reject(new Error('Error al subir. Verifica que Firebase Storage esté activado en la consola.'));
         }
       },
       async () => {
-        completed = true;
         try {
           const url = await task.snapshot.ref.getDownloadURL();
           showSpinner(false);
@@ -571,21 +565,20 @@ function uploadFileWithProgress(storageRef, file, msg) {
   });
 }
 
-async function uploadViaFetch(storageRef, file, msg) {
+async function uploadViaApiKey(storageRef, file, msg) {
   const bucket = 'yarah-app.firebasestorage.app';
   const path = storageRef.fullPath;
-  const token = await AUTH.currentUser.getIdToken();
-  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?name=${encodeURIComponent(path)}&uploadType=media`;
-  showSpinner(true, msg || 'Subiendo (fallback)...');
-  const xhr = new XMLHttpRequest();
+  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?name=${encodeURIComponent(path)}&key=${API_KEY}&uploadType=media`;
+  showSpinner(true, msg || 'Subiendo...');
   return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
     xhr.upload.onprogress = e => {
       if (e.lengthComputable) setProgress((e.loaded / e.total) * 100);
     };
-    xhr.onload = async () => {
+    xhr.onload = () => {
       if (xhr.status === 200) {
         const data = JSON.parse(xhr.responseText);
-        const dlUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(data.name)}?alt=media&token=${token}`;
+        const dlUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(data.name)}?alt=media`;
         showSpinner(false);
         resolve(dlUrl);
       } else {
@@ -594,8 +587,7 @@ async function uploadViaFetch(storageRef, file, msg) {
     };
     xhr.onerror = () => reject(new Error('Network error'));
     xhr.open('POST', url);
-    xhr.setRequestHeader('Authorization', 'Firebase ' + token);
-    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.setRequestHeader('Content-Type', 'text/plain');
     xhr.send(file);
   });
 }
