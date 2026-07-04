@@ -138,9 +138,9 @@ tr:hover td { background: #faf8f5; }
   .profile-info .name { font-size: 18px; }
   .btn { font-size: 14px; padding: 10px 16px; }
   input, select, textarea { font-size: 16px; padding: 10px; }
-  #mediaGrid { justify-content: center; }
-  #mediaGrid > div { width: calc(50% - 8px) !important; }
-  #mediaGrid img, #mediaGrid a[style*="140px"] { width: 100% !important; height: 120px !important; }
+  #photoGrid, #docGrid { justify-content: center; }
+  #photoGrid > div, #docGrid > div { width: calc(50% - 8px) !important; }
+  #photoGrid img, #docGrid img, #photoGrid a[style*="140px"], #docGrid a[style*="140px"] { width: 100% !important; height: 120px !important; }
 }
 </style>
 </head>
@@ -179,6 +179,7 @@ tr:hover td { background: #faf8f5; }
   <button data-section="vet">Veterinario</button>
   <button data-section="nutrition">Alimentación</button>
   <button data-section="photos">Fotos</button>
+  <button data-section="docs">Documentos</button>
 </nav>
 
 <main>
@@ -363,14 +364,28 @@ tr:hover td { background: #faf8f5; }
 <!-- PHOTOS -->
 <section id="section-photos" class="section">
   <div class="card">
-    <h2>📸 Fotos y documentos</h2>
-    <p style="font-size:14px;color:var(--text-light);margin-bottom:12px">Sube fotos, informes veterinarios, facturas o cualquier documento.</p>
-    <button class="btn btn-accent" id="uploadBtn">➕ Subir archivo</button>
+    <h2>📸 Fotos</h2>
+    <p style="font-size:14px;color:var(--text-light);margin-bottom:12px">Sube fotos de Yarah.</p>
+    <button class="btn btn-accent" id="uploadPhotoBtn">➕ Subir foto</button>
   </div>
   <div class="card">
-    <h2>📁 Galería</h2>
-    <div id="mediaGrid" style="display:flex;flex-wrap:wrap;gap:12px"></div>
-    <div class="empty" id="mediaEmpty"><p>Aún no has subido ningún archivo.</p></div>
+    <h2>📁 Álbum</h2>
+    <div id="photoGrid" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+    <div class="empty" id="photoEmpty"><p>Aún no has subido ninguna foto.</p></div>
+  </div>
+</section>
+
+<!-- DOCS -->
+<section id="section-docs" class="section">
+  <div class="card">
+    <h2>📄 Documentos</h2>
+    <p style="font-size:14px;color:var(--text-light);margin-bottom:12px">Sube informes veterinarios, facturas, análisis, etc.</p>
+    <button class="btn btn-accent" id="uploadDocBtn">➕ Subir documento</button>
+  </div>
+  <div class="card">
+    <h2>📁 Archivos</h2>
+    <div id="docGrid" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+    <div class="empty" id="docEmpty"><p>Aún no has subido ningún documento.</p></div>
   </div>
 </section>
 
@@ -564,7 +579,8 @@ function renderAll() {
   renderDashboard();
   renderWeights();
   renderVet();
-  renderMedia();
+  renderPhotos();
+  renderDocs();
 }
 
 // ===== DASHBOARD =====
@@ -813,17 +829,18 @@ function deleteVet(i) {
 const CLOUD_NAME = 'c78xekxj';
 const UPLOAD_PRESET = 'yarah_preset';
 
-function renderMedia() {
-  const grid = document.getElementById('mediaGrid');
-  const empty = document.getElementById('mediaEmpty');
+function renderGallery(type, gridId, emptyId) {
+  const grid = document.getElementById(gridId);
+  const empty = document.getElementById(emptyId);
   if (!grid) return;
   grid.innerHTML = '';
-  if (!data.media || data.media.length === 0) { empty.style.display = 'block'; return; }
+  const items = (data.media || []).filter(m => m.category === type);
+  if (items.length === 0) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  data.media.slice().reverse().forEach(m => {
+  items.slice().reverse().forEach(m => {
     const div = document.createElement('div');
     div.style.cssText = 'position:relative;width:140px';
-    if (m.type === 'image') {
+    if (m.resourceType === 'image') {
       div.innerHTML = `<a href="${m.url}" target="_blank"><img src="${m.url}" style="width:140px;height:140px;object-fit:cover;border-radius:10px;box-shadow:var(--shadow);display:block" alt="${m.name}"></a>`;
     } else {
       div.innerHTML = `<a href="${m.url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:140px;height:140px;background:var(--bg);border-radius:10px;border:1px solid var(--border);text-decoration:none;color:var(--text);gap:6px"><span style="font-size:32px">📄</span><span style="font-size:11px;text-align:center;padding:0 4px;word-break:break-all">${m.name}</span></a>`;
@@ -837,10 +854,38 @@ function renderMedia() {
   });
 }
 
+function renderPhotos() { renderGallery('photo', 'photoGrid', 'photoEmpty'); }
+function renderDocs() { renderGallery('document', 'docGrid', 'docEmpty'); }
+
 function deleteMedia(publicId) {
   if (!data.media) return;
   data.media = data.media.filter(m => m.publicId !== publicId);
-  saveData().then(renderMedia);
+  saveData().then(() => { renderPhotos(); renderDocs(); });
+}
+
+function uploadFile(category, accept) {
+  if (typeof cloudinary === 'undefined') { alert('El widget de subida aún no ha cargado. Inténtalo de nuevo.'); return; }
+  const widget = cloudinary.createUploadWidget(
+    { cloudName: CLOUD_NAME, uploadPreset: UPLOAD_PRESET, sources: ['local', 'camera', 'url', 'google_drive'], accept: accept },
+    (error, result) => {
+      if (!error && result && result.event === 'success') {
+        const info = result.info;
+        if (!data.media) data.media = [];
+        data.media.push({
+          publicId: info.public_id,
+          url: info.secure_url,
+          resourceType: info.resource_type,
+          format: info.format,
+          name: info.original_filename,
+          bytes: info.bytes,
+          category: category,
+          date: new Date().toISOString().split('T')[0]
+        });
+        saveData().then(() => { renderPhotos(); renderDocs(); });
+      }
+    }
+  );
+  widget.open();
 }
 
 // ===== NAV =====
@@ -852,7 +897,8 @@ function initNav() {
       btn.classList.add('active');
       document.getElementById('section-' + btn.dataset.section).classList.add('active');
       if (btn.dataset.section === 'weight') setTimeout(drawChart, 50);
-      if (btn.dataset.section === 'photos') renderMedia();
+      if (btn.dataset.section === 'photos') renderPhotos();
+      if (btn.dataset.section === 'docs') renderDocs();
     });
   });
 }
@@ -871,29 +917,8 @@ function initEvents() {
     document.getElementById('customReasonWrap').style.display = this.value === 'otro' ? 'block' : 'none';
   });
 
-  document.getElementById('uploadBtn').addEventListener('click', function() {
-    if (typeof cloudinary === 'undefined') { alert('El widget de subida aún no ha cargado. Inténtalo de nuevo.'); return; }
-    const widget = cloudinary.createUploadWidget(
-      { cloudName: CLOUD_NAME, uploadPreset: UPLOAD_PRESET, sources: ['local', 'camera', 'url', 'google_drive'], accept: 'image/*,.pdf,.doc,.docx,.xls,.xlsx' },
-      (error, result) => {
-        if (!error && result && result.event === 'success') {
-          const info = result.info;
-          if (!data.media) data.media = [];
-          data.media.push({
-            publicId: info.public_id,
-            url: info.secure_url,
-            type: info.resource_type,
-            format: info.format,
-            name: info.original_filename,
-            bytes: info.bytes,
-            date: new Date().toISOString().split('T')[0]
-          });
-          saveData().then(renderMedia);
-        }
-      }
-    );
-    widget.open();
-  });
+  document.getElementById('uploadPhotoBtn').addEventListener('click', () => uploadFile('photo', 'image/*'));
+  document.getElementById('uploadDocBtn').addEventListener('click', () => uploadFile('document', '.pdf,.doc,.docx,.xls,.xlsx,.txt'));
 
   setInterval(renderDashboard, 60000);
 
