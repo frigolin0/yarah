@@ -859,8 +859,9 @@ function renderGallery(type, gridId, emptyId) {
       if (m.resourceType === 'image' && !isPdf) {
         div.innerHTML = `<a href="${m.url}" target="_blank"><img src="${m.url}" style="width:140px;height:140px;object-fit:cover;border-radius:10px;box-shadow:var(--shadow);display:block" alt="${m.name}"></a>`;
       } else if (isPdf) {
+        const pdfUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${m.publicId}.pdf`;
         const thumbUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/w_140,h_140,c_fill/${m.publicId}.jpg`;
-        div.innerHTML = `<a href="${m.url}" target="_blank"><img src="${thumbUrl}" style="width:140px;height:140px;object-fit:cover;border-radius:10px;box-shadow:var(--shadow);display:block" alt="${m.name}"></a>`;
+        div.innerHTML = `<a href="${pdfUrl}" target="_blank"><img src="${thumbUrl}" style="width:140px;height:140px;object-fit:cover;border-radius:10px;box-shadow:var(--shadow);display:block" alt="${m.name}"></a>`;
       } else {
         div.innerHTML = `<a href="${m.url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:140px;height:140px;background:var(--bg);border-radius:10px;border:1px solid var(--border);text-decoration:none;color:var(--text);gap:6px"><span style="font-size:32px">📄</span><span style="font-size:11px;text-align:center;padding:0 4px;word-break:break-all">${m.name}</span></a>`;
       }
