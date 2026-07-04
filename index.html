@@ -837,20 +837,36 @@ function renderGallery(type, gridId, emptyId) {
   const items = (data.media || []).filter(m => m.category === type);
   if (items.length === 0) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  items.slice().reverse().forEach(m => {
-    const div = document.createElement('div');
-    div.style.cssText = 'position:relative;width:140px';
-    if (m.resourceType === 'image') {
-      div.innerHTML = `<a href="${m.url}" target="_blank"><img src="${m.url}" style="width:140px;height:140px;object-fit:cover;border-radius:10px;box-shadow:var(--shadow);display:block" alt="${m.name}"></a>`;
-    } else {
-      div.innerHTML = `<a href="${m.url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:140px;height:140px;background:var(--bg);border-radius:10px;border:1px solid var(--border);text-decoration:none;color:var(--text);gap:6px"><span style="font-size:32px">📄</span><span style="font-size:11px;text-align:center;padding:0 4px;word-break:break-all">${m.name}</span></a>`;
-    }
-    const del = document.createElement('button');
-    del.textContent = '✕';
-    del.style.cssText = 'position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:none;background:var(--danger);color:#fff;font-size:12px;cursor:pointer;line-height:1';
-    del.onclick = () => deleteMedia(m.publicId);
-    div.appendChild(del);
-    grid.appendChild(div);
+  const groups = {};
+  items.forEach(m => {
+    const d = m.date || 'sin fecha';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(m);
+  });
+  Object.keys(groups).sort((a, b) => {
+    if (a === 'sin fecha') return 1;
+    if (b === 'sin fecha') return -1;
+    return b.localeCompare(a);
+  }).forEach(date => {
+    const header = document.createElement('div');
+    header.style.cssText = 'width:100%;font-size:13px;font-weight:600;color:var(--text-light);padding:8px 0 4px';
+    header.textContent = date;
+    grid.appendChild(header);
+    groups[date].slice().reverse().forEach(m => {
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;width:140px';
+      if (m.resourceType === 'image') {
+        div.innerHTML = `<a href="${m.url}" target="_blank"><img src="${m.url}" style="width:140px;height:140px;object-fit:cover;border-radius:10px;box-shadow:var(--shadow);display:block" alt="${m.name}"></a>`;
+      } else {
+        div.innerHTML = `<a href="${m.url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:140px;height:140px;background:var(--bg);border-radius:10px;border:1px solid var(--border);text-decoration:none;color:var(--text);gap:6px"><span style="font-size:32px">📄</span><span style="font-size:11px;text-align:center;padding:0 4px;word-break:break-all">${m.name}</span></a>`;
+      }
+      const del = document.createElement('button');
+      del.textContent = '✕';
+      del.style.cssText = 'position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:none;background:var(--danger);color:#fff;font-size:12px;cursor:pointer;line-height:1';
+      del.onclick = () => deleteMedia(m.publicId);
+      div.appendChild(del);
+      grid.appendChild(div);
+    });
   });
 }
 
